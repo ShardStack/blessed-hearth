@@ -1,0 +1,2273 @@
+<!doctype html>
+<html lang="en" data-theme="__HEARTH_THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1A1325">
+<title>Blessed Hearth</title>
+<link rel="icon" href="icons/hearth.svg">
+<style>
+@font-face { font-family: "Marcellus"; src: url("fonts/marcellus.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Instrument Sans"; src: url("fonts/instrument-sans.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+
+/* Themes. Each one is just a palette: color values (most as "R G B" so the rules can add
+   transparency) set on <html data-theme="...">. The rules below only ever use these names. */
+:root, [data-theme="arcane"] {
+  /* accents */
+  --acc: 176 103 255;          /* main accent: buttons, selection, "update available" */
+  --acc-soft: 196 164 255;     /* light tint for lines and hovers */
+  --acc2: 226 91 208;          /* second glow */
+  --glow3: 255 122 61;         /* third glow, bottom right */
+  --acc-top: #BC80FF; --acc-bot: #8E47F0; --acc-top-h: #C995FF; --acc-bot-h: #9A57F5;
+  --acc-ink: #fff;             /* text on accent buttons and badges */
+  --epic-name: #C99BFF;
+  /* status colors, borrowed from WoW item quality */
+  --ok: 79 216 139; --ok-text: #7BE6A8;
+  --hot: 255 145 71; --hot-text: #FFB27D;
+  --poor-rgb: 143 135 158; --poor-text: #B8B1C4;
+  --common-rgb: 233 228 240;
+  /* surfaces */
+  --void: #130E1B; --void-2: #1A1325; --bg-top: #160F21; --bg-bot: #120D19;
+  --inset: 12 8 18; --shade: 5 2 10;
+  --float: 30 22 44; --float-hi: 36 26 52; --side-bg: 19 13 28;
+  --glass-rgb: 33 24 48; --glass-hi-rgb: 46 34 66; --glass-solid: #211830; --hero-rgb: 60 36 98;
+  --logo-a: #2E2244; --logo-b: #1E1630; --cover-a: #3B2560; --cover-b: #1D1430;
+  /* text */
+  --text: #F2EDF8; --muted: #A99FBA; --faint: #716884;
+  /* the hearth mark */
+  --mark-a: #E6C9FF; --mark-b: #A45CFF; --mark-c: #E25BD0; --mark-ember: #FF8A4C; --mark-bg: #1E1530; --spark: #FFC08A;
+  --mark-stone: #8C78B4; --mark-flame: #E25BD0; --mark-gem: #7FE3FF;
+  --grain: .5;
+  --display: "Marcellus", "Palatino Linotype", Georgia, serif;
+  --ui: "Instrument Sans", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+}
+:root, [data-theme] {
+  /* Worked out from the palette above, so themes don't need to set them. They get recalculated on
+     anything that has a theme on it, which is how the little previews in Settings work. */
+  --glass: rgb(var(--glass-rgb) / .58);
+  --glass-hi: rgb(var(--glass-hi-rgb) / .66);
+  --line: rgb(var(--acc-soft) / .13);
+  --line-hi: rgb(var(--acc-soft) / .26);
+  --poor: rgb(var(--poor-rgb)); --common: rgb(var(--common-rgb));
+  --uncommon: rgb(var(--ok)); --epic: rgb(var(--acc)); --legendary: rgb(var(--hot)); --magenta: rgb(var(--acc2));
+  --focus: 0 0 0 2px var(--void), 0 0 0 4px var(--epic);
+}
+
+/* Fel: sickly green fire on near-black moss. "Up to date" turns cyan so it doesn't blend into the accent. */
+[data-theme="fel"] {
+  --acc: 118 232 76; --acc-soft: 176 240 170; --acc2: 32 201 170; --glow3: 40 150 90;
+  --acc-top: #8CF266; --acc-bot: #3FB52E; --acc-top-h: #A0F77E; --acc-bot-h: #4CC63A; --acc-ink: #072109;
+  --epic-name: #A9F38E;
+  --ok: 84 204 240; --ok-text: #9BE3F7;
+  --poor-rgb: 135 150 140; --poor-text: #B1C2B6; --common-rgb: 228 240 230;
+  --void: #0B120E; --void-2: #101A14; --bg-top: #0E1812; --bg-bot: #09110D;
+  --inset: 6 12 9; --shade: 2 6 4; --float: 18 30 23; --float-hi: 22 37 28; --side-bg: 12 20 15;
+  --glass-rgb: 20 34 26; --glass-hi-rgb: 28 46 36; --glass-solid: #16241B; --hero-rgb: 30 66 40;
+  --logo-a: #1F3326; --logo-b: #13201A; --cover-a: #24502E; --cover-b: #10201A;
+  --text: #EEF6EF; --muted: #9DB2A3; --faint: #66796B;
+  --mark-a: #DAFFCB; --mark-b: #6CE048; --mark-c: #20C9AA; --mark-ember: #9BFF6A; --mark-bg: #13201A; --spark: #C4FFA6;
+  --mark-stone: #5E7A66; --mark-flame: #20C9AA; --mark-gem: #7FF5DD;
+}
+
+/* Crimson: blood red and rose on a dark wine black. */
+[data-theme="crimson"] {
+  --acc: 236 72 92; --acc-soft: 255 176 186; --acc2: 214 70 160; --glow3: 255 110 60;
+  --acc-top: #FF6F80; --acc-bot: #C92A44; --acc-top-h: #FF8593; --acc-bot-h: #D93952; --acc-ink: #fff;
+  --epic-name: #FF8FA0;
+  --hot: 255 160 90; --hot-text: #FFC29A;
+  --poor-rgb: 158 138 143; --poor-text: #C4B1B5; --common-rgb: 240 228 230;
+  --void: #140B0E; --void-2: #1B1014; --bg-top: #1A0E12; --bg-bot: #120A0D;
+  --inset: 14 7 9; --shade: 8 2 4; --float: 36 18 24; --float-hi: 42 22 28; --side-bg: 22 11 15;
+  --glass-rgb: 38 20 26; --glass-hi-rgb: 52 28 36; --glass-solid: #261419; --hero-rgb: 90 30 44;
+  --logo-a: #3A2028; --logo-b: #22131A; --cover-a: #5A2030; --cover-b: #22101A;
+  --text: #F8EDEF; --muted: #BBA0A6; --faint: #80666C;
+  --mark-a: #FFD3D9; --mark-b: #EC485C; --mark-c: #D646A0; --mark-ember: #FF8A4C; --mark-bg: #22131A; --spark: #FFB08A;
+  --mark-stone: #8E5E6A; --mark-flame: #D646A0; --mark-gem: #FF5C7A;
+}
+
+/* Frost: bright ice blue and violet on cold slate. */
+[data-theme="frost"] {
+  --acc: 84 196 255; --acc-soft: 170 215 255; --acc2: 150 140 255; --glow3: 90 230 220;
+  --acc-top: #7FD6FF; --acc-bot: #2C93E0; --acc-top-h: #97DEFF; --acc-bot-h: #3EA2EA; --acc-ink: #04203A;
+  --epic-name: #8FD8FF;
+  --poor-rgb: 136 148 160; --poor-text: #B3C1CE; --common-rgb: 228 236 244;
+  --void: #0A1017; --void-2: #0F1720; --bg-top: #0E1620; --bg-bot: #091018;
+  --inset: 6 10 15; --shade: 2 4 8; --float: 20 30 42; --float-hi: 24 36 50; --side-bg: 12 18 26;
+  --glass-rgb: 22 33 46; --glass-hi-rgb: 30 45 62; --glass-solid: #16212E; --hero-rgb: 30 60 96;
+  --logo-a: #22344A; --logo-b: #141F2C; --cover-a: #1E4266; --cover-b: #0E1A28;
+  --text: #EEF5FB; --muted: #9DB0C2; --faint: #66788A;
+  --mark-a: #E4F6FF; --mark-b: #54C4FF; --mark-c: #968CFF; --mark-ember: #7FE0FF; --mark-bg: #141F2C; --spark: #D8F2FF;
+  --mark-stone: #6F86A0; --mark-flame: #968CFF; --mark-gem: #C3B6FF;
+}
+
+/* Dark: plain near-black and greys, white buttons, no glow or grain. Violet only marks updates. */
+[data-theme="dark"] {
+  --acc: 236 236 240; --acc-soft: 255 255 255; --acc2: 150 150 160; --glow3: 120 120 130;
+  --acc-top: #F4F4F5; --acc-bot: #D4D4D8; --acc-top-h: #FFFFFF; --acc-bot-h: #E4E4E7; --acc-ink: #0A0A0B;
+  --epic-name: #C4B5FD;
+  --poor-rgb: 140 140 148; --poor-text: #B4B4BC; --common-rgb: 232 232 236;
+  --void: #0A0A0B; --void-2: #111113; --bg-top: #0C0C0E; --bg-bot: #0A0A0B;
+  --inset: 4 4 5; --shade: 0 0 0; --float: 24 24 27; --float-hi: 30 30 33; --side-bg: 14 14 16;
+  --glass-rgb: 22 22 25; --glass-hi-rgb: 32 32 36; --glass-solid: #18181B; --hero-rgb: 36 36 42;
+  --logo-a: #26262B; --logo-b: #18181B; --cover-a: #2A2A30; --cover-b: #141416;
+  --text: #EDEDEF; --muted: #A1A1AA; --faint: #6B6B74;
+  --mark-a: #FFFFFF; --mark-b: #C8C8D0; --mark-c: #8A8A96; --mark-ember: #FF8A4C; --mark-bg: #18181B; --spark: #FFC08A;
+  --mark-stone: #7A7A84; --mark-flame: #FF5A3C; --mark-gem: #A78BFA;
+  --grain: 0;
+  --line: rgb(255 255 255 / .08); --line-hi: rgb(255 255 255 / .16);
+  --epic: #A78BFA;
+}
+[data-theme="dark"] .app::before { background: var(--bg-bot); }
+[data-theme="dark"] .side, [data-theme="dark"] .side * { backdrop-filter: none; }
+[data-theme="dark"] .side { background: #0E0E10; }
+[data-theme="dark"] h1 { text-shadow: none; }
+
+/* Forever: the World of Warcraft: Forever login screen. Obsidian stone under a night sky, molten
+   portal light, WoW's red buttons with bronze edges, and the teal and cream of the Forever W emblem.
+   (The game's lettering is gold; cream is used instead.) */
+[data-theme="forever"] {
+  --acc: 64 164 208; --acc-soft: 214 178 120; --acc2: 255 118 38; --glow3: 196 36 24;
+  --acc-top: #C42A1E; --acc-bot: #7A0F0B; --acc-top-h: #D63527; --acc-bot-h: #8C1610; --acc-ink: #F6EAD0;
+  --epic-name: #8FD4F2;
+  --poor-rgb: 150 140 130; --poor-text: #C2B6A8; --common-rgb: 243 235 221;
+  --void: #0B0A0E; --void-2: #13111A; --bg-top: #0E0F1E; --bg-bot: #0B0A0E;
+  --inset: 8 7 8; --shade: 3 2 2; --float: 30 25 24; --float-hi: 36 30 28; --side-bg: 14 12 14;
+  --glass-rgb: 27 23 23; --glass-hi-rgb: 40 33 31; --glass-solid: #1C1717; --hero-rgb: 70 34 20;
+  --logo-a: #2B2422; --logo-b: #191414; --cover-a: #5A2A14; --cover-b: #1A1214;
+  --text: #F3EBDD; --muted: #B5A796; --faint: #7C7064;
+  --mark-a: #F6EAD0; --mark-b: #40A4D0; --mark-c: #B08A4A; --mark-ember: #FF7626; --mark-bg: #191414; --spark: #FFB36B;
+  --mark-stone: #8A7458; --mark-flame: #C42A1E; --mark-gem: #40A4D0;
+  --line: rgb(176 138 74 / .2); --line-hi: rgb(176 138 74 / .38);
+}
+/* night sky above, the portal's fire below */
+[data-theme="forever"] .app::before { background:
+    radial-gradient(1200px 520px at 55% 120%, rgb(255 118 38 / .30), transparent 65%),
+    radial-gradient(700px 420px at 100% 100%, rgb(196 36 24 / .22), transparent 65%),
+    radial-gradient(900px 500px at 15% -10%, rgb(64 72 150 / .26), transparent 62%),
+    linear-gradient(180deg, var(--bg-top) 0%, #120E14 55%, #1A0F0C 100%); }
+/* WoW-style buttons: red with a bronze edge and a darker inner rim */
+[data-theme="forever"] .btn.primary { border: 1px solid #B08A4A; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .45), inset 0 1px 0 rgb(255 200 160 / .25), 0 8px 22px rgb(196 36 24 / .35); text-shadow: 0 1px 1px rgb(0 0 0 / .6); }
+[data-theme="forever"] .btn.primary:hover:not(:disabled) { border-color: #D2AA62; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .45), inset 0 1px 0 rgb(255 200 160 / .3), 0 10px 28px rgb(255 118 38 / .4); }
+[data-theme="forever"] .nav .count, [data-theme="forever"] .menu.gamemenu .count { box-shadow: inset 0 0 0 1px #B08A4A, 0 0 14px rgb(196 36 24 / .5); }
+[data-theme="forever"] h1 { text-shadow: 0 2px 30px rgb(255 118 38 / .25); }
+[data-theme="forever"] .hero, [data-theme="forever"] .find-head, [data-theme="forever"] .welcome { box-shadow: inset 0 0 0 1px rgb(0 0 0 / .5), 0 30px 60px -30px rgb(0 0 0 / .7); }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--void); color: var(--text); font: 14px/1.45 var(--ui); -webkit-font-smoothing: antialiased; }
+body { overflow: hidden; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: none; box-shadow: var(--focus); }
+::selection { background: rgb(var(--acc) / .4); }
+a { color: var(--epic-name); }
+svg.i { width: 18px; height: 18px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-thumb { background: rgb(var(--acc-soft) / .14); border-radius: 99px; border: 3px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: rgb(var(--acc-soft) / .26); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Background glow and grain */
+.app { display: grid; grid-template-columns: 264px 1fr; height: 100vh; position: relative; isolation: isolate; }
+.app::before { content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(1100px 640px at 22% -12%, rgb(var(--acc) / .32), transparent 62%),
+    radial-gradient(760px 480px at 102% 6%, rgb(var(--acc2) / .16), transparent 62%),
+    radial-gradient(1000px 560px at 78% 118%, rgb(var(--glow3) / .17), transparent 62%),
+    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bot) 100%); }
+.app::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: var(--grain); mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+/* Sidebar */
+.side { background: rgb(var(--side-bg) / .5); backdrop-filter: blur(22px) saturate(140%); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 24px 14px 16px; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 30px; }
+.brand svg { width: 36px; height: 36px; filter: drop-shadow(0 4px 14px rgb(var(--acc) / .45)); }
+.brand b { font: 19px/1.05 var(--display); color: var(--text); }
+.brand b span { display: block; color: var(--epic-name); font-size: 14px; letter-spacing: .02em; margin-top: 2px; }
+nav { display: flex; flex-direction: column; gap: 4px; }
+.nav { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border: 0; border-radius: 11px; background: none; color: var(--muted); text-align: left; font-weight: 500; position: relative; transition: color .15s, background .15s; }
+.nav:hover { color: var(--text); background: rgb(var(--acc-soft) / .06); }
+.nav[aria-current="page"] { color: var(--text); background: linear-gradient(90deg, rgb(var(--acc) / .22), rgb(var(--acc) / .05)); }
+.nav[aria-current="page"]::before { content: ""; position: absolute; left: -14px; top: 9px; bottom: 9px; width: 3px; border-radius: 0 3px 3px 0; background: var(--epic); box-shadow: 0 0 12px var(--epic); }
+.nav[aria-current="page"] svg { color: var(--epic-name); }
+.nav .label { min-width: 0; line-height: 1.25; overflow-wrap: anywhere; }
+.nav .count { flex: none; margin-left: auto; min-width: 22px; padding: 1px 7px; border-radius: 99px; background: linear-gradient(180deg, var(--acc-top), var(--acc-bot)); color: var(--acc-ink); font-size: 12px; font-weight: 700; text-align: center; box-shadow: 0 0 14px rgb(var(--acc) / .55); }
+.nav .count:empty { display: none; }
+.nav .dot { margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--legendary); box-shadow: 0 0 10px var(--legendary); }
+.side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding: 0 4px; }
+.where { border: 1px solid var(--line); border-radius: 13px; padding: 12px 13px; background: rgba(255,255,255,.025); text-align: left; color: var(--muted); font-size: 12.5px; display: block; width: 100%; transition: border-color .15s, background .15s; }
+.where:hover { border-color: var(--line-hi); background: rgba(255,255,255,.05); color: var(--text); }
+.where strong { display: block; color: var(--text); font-weight: 600; font-size: 13px; margin-bottom: 1px; }
+.where .path { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ver-note { color: var(--faint); font-size: 12px; padding-left: 4px; }
+
+main { position: relative; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.jobbar { position: absolute; inset: 0 0 auto 0; height: 3px; overflow: hidden; z-index: 5; opacity: 0; transition: opacity .2s; }
+.jobbar.on { opacity: 1; }
+.jobbar .fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--epic), var(--magenta)); box-shadow: 0 0 12px var(--epic); transition: width .25s ease; }
+.jobbar.indet .fill { width: 30%; animation: slide 1.1s ease-in-out infinite; }
+@keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+.view { display: none; flex: 1; overflow-y: auto; padding: 34px 44px 60px; }
+.view.on { display: block; }
+.wrap { max-width: 1080px; margin: 0 auto; }
+
+/* Headings */
+h1 { font: 38px/1.12 var(--display); margin: 0; font-weight: 400; color: var(--text); text-shadow: 0 2px 30px rgb(var(--acc) / .25); }
+h2 { font: 21px/1.2 var(--display); margin: 0 0 4px; font-weight: 400; }
+.sub { color: var(--muted); margin: 10px 0 0; max-width: 62ch; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 17px; border-radius: 11px; border: 1px solid var(--line); background: rgba(255,255,255,.045); color: var(--text); font-weight: 600; white-space: nowrap; transition: background .15s, border-color .15s, box-shadow .15s, transform .1s; }
+.btn:hover:not(:disabled) { background: rgba(255,255,255,.085); border-color: var(--line-hi); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.primary { background: linear-gradient(180deg, var(--acc-top) 0%, var(--acc-bot) 100%); border-color: rgba(255,255,255,.16); color: var(--acc-ink); box-shadow: 0 8px 24px rgb(var(--acc) / .38), inset 0 1px 0 rgba(255,255,255,.28); text-shadow: 0 1px 1px rgb(var(--shade) / .35); }
+.btn.primary:hover:not(:disabled) { background: linear-gradient(180deg, var(--acc-top-h) 0%, var(--acc-bot-h) 100%); box-shadow: 0 10px 30px rgb(var(--acc) / .52), inset 0 1px 0 rgba(255,255,255,.32); border-color: rgba(255,255,255,.22); }
+.btn.ghost { background: transparent; }
+.btn.danger { background: linear-gradient(180deg, #FF9B6A, #F06A3B); border-color: rgba(255,255,255,.14); color: #2A0E03; box-shadow: 0 8px 22px rgb(var(--hot) / .3); }
+.btn.danger:hover:not(:disabled) { background: linear-gradient(180deg, #FFAC80, #F57B4E); }
+.btn.sm { height: 33px; padding: 0 14px; font-size: 13px; border-radius: 9px; }
+.btn.lg { height: 46px; padding: 0 24px; font-size: 15px; border-radius: 12px; }
+.icon-btn { width: 33px; height: 33px; display: inline-grid; place-items: center; border-radius: 9px; border: 0; background: none; color: var(--muted); transition: background .15s, color .15s; }
+.icon-btn:hover { background: rgba(255,255,255,.07); color: var(--text); }
+.linkish { background: none; border: 0; padding: 0; color: var(--epic-name); font-weight: 600; }
+.linkish:hover { text-decoration: underline; }
+
+/* My addons: the header card and its rune ring */
+.hero { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) 196px; align-items: center; gap: 28px; padding: 30px 34px; margin-bottom: 22px; border-radius: 22px; border: 1px solid var(--line);
+  background: radial-gradient(420px 260px at 88% 50%, rgb(var(--acc) / .20), transparent 70%), linear-gradient(135deg, rgb(var(--hero-rgb) / .55), rgb(var(--float) / .55)); backdrop-filter: blur(14px); box-shadow: 0 30px 60px -30px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05); }
+.hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.035) 50%, transparent 70%); }
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+
+.sigil { --q: var(--poor); position: relative; width: 196px; height: 196px; color: var(--q); justify-self: end; transition: color .4s; }
+.sigil.s-epic { --q: var(--epic); }
+.sigil.s-clear { --q: var(--uncommon); }
+.sigil.s-warn { --q: var(--legendary); }
+.sigil svg.ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.sigil .spin { transform-origin: 100px 100px; animation: turn 60s linear infinite; }
+.sigil .spin-rev { transform-origin: 100px 100px; animation: turn 90s linear infinite reverse; }
+.sigil.working .spin { animation-duration: 6s; }
+.sigil.working .spin-rev { animation-duration: 9s; }
+@keyframes turn { to { transform: rotate(360deg); } }
+.sigil-core { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.sigil-core b { font: 56px/1 var(--display); font-weight: 400; color: #fff; text-shadow: 0 0 22px var(--q), 0 0 4px var(--q); }
+.sigil-core b svg.i { width: 54px; height: 54px; stroke-width: 2.2; color: var(--q); filter: drop-shadow(0 0 12px var(--q)); }
+.sigil-core small { display: block; margin-top: 6px; font-size: 12px; color: var(--muted); }
+.sigil.pulse .core-glow { animation: pulse 1.4s ease-out; }
+@keyframes pulse { 0% { opacity: 1; transform: scale(1.25); } 100% { opacity: .55; transform: scale(1); } }
+.core-glow { transform-origin: 100px 100px; opacity: .55; }
+
+/* Filter bar */
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 2px; position: sticky; top: -34px; z-index: 3; margin: 0 -2px 10px; border-radius: 0 0 14px 14px; transition: background .2s, box-shadow .2s; }
+.toolbar.stuck { background: rgb(var(--side-bg) / .86); backdrop-filter: blur(14px); box-shadow: 0 12px 24px -16px rgba(0,0,0,.8); }
+.seg { display: inline-flex; padding: 4px; gap: 3px; background: rgba(255,255,255,.035); border-radius: 12px; border: 1px solid var(--line); }
+.seg button { border: 0; background: none; color: var(--muted); padding: 7px 14px; border-radius: 9px; font-weight: 500; font-size: 13px; transition: color .15s, background .15s; }
+.seg button:hover { color: var(--text); }
+.seg button[aria-pressed="true"] { background: linear-gradient(180deg, rgb(var(--acc) / .30), rgb(var(--acc) / .16)); color: #fff; box-shadow: inset 0 0 0 1px rgb(var(--acc-soft) / .28); }
+.seg button .k { color: var(--faint); margin-left: 6px; font-variant-numeric: tabular-nums; }
+.seg button[aria-pressed="true"] .k { color: var(--epic-name); }
+.filter { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 13px; border-radius: 11px; background: rgba(255,255,255,.04); border: 1px solid var(--line); color: var(--muted); width: 270px; transition: border-color .15s, box-shadow .15s; }
+.filter:focus-within { border-color: rgb(var(--acc) / .6); box-shadow: 0 0 0 4px rgb(var(--acc) / .14); }
+.filter input { border: 0; background: none; outline: none; width: 100%; color: var(--text); }
+.filter input::placeholder { color: var(--faint); }
+
+/* Addon rows, colored like WoW item quality */
+.row { --qc: var(--common); --qr: rgb(var(--common-rgb) / .22); --qg: transparent; }
+.q-epic { --qc: var(--epic); --qr: var(--epic); --qg: rgb(var(--acc) / .55); }
+.q-uncommon { --qc: var(--uncommon); --qr: rgb(var(--ok) / .75); --qg: rgb(var(--ok) / .2); }
+.q-legendary { --qc: var(--legendary); --qr: var(--legendary); --qg: rgb(var(--hot) / .35); }
+.q-poor { --qc: var(--poor); --qr: rgb(var(--poor-rgb) / .5); --qg: transparent; }
+.q-common { --qc: var(--common); --qr: rgb(var(--common-rgb) / .22); --qg: transparent; }
+
+#mineList { background: var(--glass); border: 1px solid var(--line); border-radius: 18px; padding: 6px; backdrop-filter: blur(14px); box-shadow: 0 30px 60px -36px rgba(0,0,0,.65); }
+#mineList:empty { display: none; }
+.list { list-style: none; margin: 0; padding: 0; }
+.row { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto auto; align-items: center; gap: 16px; padding: 12px 14px; border-radius: 13px; position: relative; transition: background .15s; }
+.row + .row::before { content: ""; position: absolute; left: 78px; right: 14px; top: 0; border-top: 1px solid var(--line); opacity: .7; }
+.row:hover { background: rgb(var(--acc-soft) / .06); }
+.row:hover::before, .row:hover + .row::before { opacity: 0; }
+.logo { width: 46px; height: 46px; border-radius: 11px; object-fit: cover; background: linear-gradient(145deg, var(--logo-a), var(--logo-b)); display: grid; place-items: center; font: 20px var(--display); color: var(--muted); overflow: hidden; }
+.row .logo, .card .logo { box-shadow: 0 0 0 1.5px var(--qr), 0 0 0 4px rgba(0,0,0,.25), 0 0 18px var(--qg); }
+.q-epic .logo { animation: epicglow 3.2s ease-in-out infinite; }
+@keyframes epicglow { 50% { box-shadow: 0 0 0 1.5px var(--qr), 0 0 0 4px rgba(0,0,0,.25), 0 0 26px rgb(var(--acc) / .8); } }
+.name { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.name > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.q-epic .name > span:first-child { color: var(--epic-name); }
+.q-uncommon.card .name > span:first-child { color: var(--ok-text); }
+.q-legendary .name > span:first-child { color: var(--hot-text); }
+.q-poor .name > span:first-child { color: var(--poor-text); }
+.meta { color: var(--muted); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+.chip { font-size: 11.5px; font-weight: 500; color: var(--muted); border: 1px solid var(--line-hi); border-radius: 99px; padding: 0 8px; line-height: 19px; flex: none; background: rgba(255,255,255,.03); }
+.vers { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.vers .to { color: var(--epic-name); font-weight: 600; text-shadow: 0 0 14px rgb(var(--acc) / .5); }
+.vers .arrow { color: var(--faint); margin: 0 7px; }
+.vers .now { color: var(--text); opacity: .85; }
+.state { display: flex; align-items: center; justify-content: flex-end; gap: 6px; min-width: 200px; }
+.st { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); padding-right: 6px; }
+.st.ok { color: var(--uncommon); }
+.st.bad { color: var(--legendary); }
+.st svg.i { width: 16px; height: 16px; }
+.row.busy .vers, .row.busy .st { opacity: .5; }
+.rowbar { position: absolute; left: 78px; right: 14px; bottom: 5px; height: 2px; background: rgb(var(--acc-soft) / .15); border-radius: 2px; overflow: hidden; }
+.rowbar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--epic), var(--magenta)); box-shadow: 0 0 8px var(--epic); transition: width .2s; }
+.rowbar.indet i { width: 25%; animation: slide 1s ease-in-out infinite; }
+.row.done { animation: settle 1.8s ease-out; }
+@keyframes settle { 0% { background: rgb(var(--ok) / .22); box-shadow: inset 0 0 0 1px rgb(var(--ok) / .5); } 100% { background: transparent; box-shadow: none; } }
+
+.empty { text-align: center; padding: 70px 20px; color: var(--muted); list-style: none; }
+.empty h2 { color: var(--text); }
+.empty p { max-width: 46ch; margin: 6px auto 18px; }
+
+/* Find addons */
+.find-head { padding: 30px 34px 26px; margin-bottom: 18px; border-radius: 22px; border: 1px solid var(--line); position: relative; overflow: hidden;
+  background: radial-gradient(520px 240px at 100% 0%, rgb(var(--acc2) / .16), transparent 70%), radial-gradient(520px 300px at 0% 100%, rgb(var(--acc) / .18), transparent 70%), rgb(var(--glass-rgb) / .5); backdrop-filter: blur(14px); }
+.bigsearch { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 18px; margin-top: 22px; border-radius: 14px; background: rgb(var(--inset) / .55); border: 1px solid var(--line-hi); color: var(--muted); transition: border-color .15s, box-shadow .2s; }
+.bigsearch:focus-within { border-color: rgb(var(--acc) / .75); box-shadow: 0 0 0 4px rgb(var(--acc) / .16), 0 0 34px rgb(var(--acc) / .25); }
+.bigsearch svg.i { width: 20px; height: 20px; color: var(--epic-name); }
+.bigsearch input { flex: 1; border: 0; outline: none; background: none; font-size: 16px; color: var(--text); }
+.bigsearch input::placeholder { color: var(--faint); }
+kbd { font: 11.5px var(--ui); color: var(--faint); border: 1px solid var(--line-hi); border-radius: 6px; padding: 2px 7px; }
+.find-opts { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
+.toggle { display: inline-flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; cursor: pointer; user-select: none; }
+.toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.toggle .sw { width: 36px; height: 21px; border-radius: 99px; background: rgba(255,255,255,.1); border: 1px solid var(--line-hi); position: relative; transition: background .15s; flex: none; }
+.toggle .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: var(--text); transition: transform .18s; }
+.toggle input:checked + .sw { background: linear-gradient(180deg, var(--acc-top), var(--acc-bot)); border-color: transparent; box-shadow: 0 0 14px rgb(var(--acc) / .5); }
+.toggle input:checked + .sw::after { transform: translateX(15px); background: var(--acc-ink); }
+.toggle input:focus-visible + .sw { box-shadow: var(--focus); }
+.toggle.sub { margin-left: 46px; }
+.toggle:has(input:disabled) { opacity: .45; cursor: default; }
+
+#findList { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; }
+#findList > .empty { grid-column: 1 / -1; }
+.card { --qc: var(--common); --qr: rgb(var(--common-rgb) / .22); --qg: transparent; display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(14px); position: relative; transition: border-color .2s, transform .2s, box-shadow .2s; }
+.card:hover { border-color: var(--line-hi); transform: translateY(-2px); box-shadow: 0 20px 40px -24px rgba(0,0,0,.7), 0 0 0 1px rgb(var(--acc-soft) / .08); }
+.card-top { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.card .logo { width: 56px; height: 56px; border-radius: 13px; font-size: 24px; }
+.card .summary { color: var(--muted); font-size: 13px; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 37px; }
+.card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
+.card .stats { color: var(--faint); font-size: 12px; display: flex; gap: 14px; flex-wrap: wrap; }
+.card .stats span { display: inline-flex; align-items: center; gap: 5px; }
+.card .stats svg.i { width: 13px; height: 13px; }
+.card .state { min-width: 0; }
+.tag { font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 99px; border: 1px solid rgb(var(--hot) / .4); color: var(--hot-text); background: rgb(var(--hot) / .08); }
+.loadmore { display: flex; justify-content: center; padding: 22px 0; }
+.result-count { color: var(--faint); font-size: 12.5px; padding: 0 4px 12px; }
+
+/* Settings */
+.set-list { margin-top: 26px; border-radius: 20px; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(14px); padding: 0 30px; }
+.set { display: grid; grid-template-columns: 270px 1fr; gap: 32px; padding: 26px 0; border-bottom: 1px solid var(--line); }
+.set:last-child { border-bottom: 0; }
+.set h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.set p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.set .ctl { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; min-width: 0; }
+.set .ctl .line { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; width: 100%; }
+.field { height: 40px; padding: 0 13px; border-radius: 11px; border: 1px solid var(--line-hi); background: rgb(var(--inset) / .5); color: var(--text); outline: none; min-width: 0; transition: border-color .15s, box-shadow .15s; }
+.field:focus { border-color: rgb(var(--acc) / .7); box-shadow: 0 0 0 4px rgb(var(--acc) / .14); }
+.field.wide { flex: 1; min-width: 260px; }
+/* Shows dots like a password box, but isn't one, so the browser's password manager leaves it alone */
+.secret { -webkit-text-security: disc; font-family: var(--ui); letter-spacing: .04em; }
+select.field { padding-right: 32px; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A99FBA' stroke-width='2.4'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+select.field option { background: var(--glass-solid); }
+.mono-path { font-size: 13px; color: var(--text); background: rgb(var(--inset) / .45); border: 1px solid var(--line); padding: 10px 13px; border-radius: 11px; width: 100%; word-break: break-all; }
+.keyset { display: inline-flex; align-items: center; gap: 8px; color: var(--uncommon); font-size: 13px; }
+.keystat { display: flex; align-items: flex-start; gap: 9px; font-size: 13.5px; line-height: 1.45; }
+.keystat svg.i { width: 17px; height: 17px; margin-top: 1px; }
+.keystat.ok { color: var(--uncommon); } .keystat.bad { color: var(--legendary); } .keystat.unknown { color: var(--muted); }
+.keystat small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.keytest { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; color: var(--muted); }
+.keytest b { font-weight: 600; color: var(--text); }
+.keytest .good { color: var(--uncommon); } .keytest .no { color: var(--legendary); }
+.help { font-size: 12.5px; color: var(--faint); }
+.msg-err { color: var(--legendary); font-size: 13px; }
+
+.bannerwrap { padding: 16px 44px 0; }
+.keybanner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; gap: 12px; padding: 11px 12px 11px 16px; border-radius: 14px; border: 1px solid rgb(var(--hot) / .45); background: linear-gradient(90deg, rgb(var(--hot) / .14), rgb(var(--hot) / .04)); backdrop-filter: blur(10px); font-size: 13.5px; box-shadow: 0 0 30px -10px rgb(var(--hot) / .4); }
+.keybanner svg.i { color: var(--legendary); }
+.keybanner .btn { margin-left: auto; }
+
+/* First time setup */
+.welcome { max-width: 740px; margin: 0 auto; padding: 38px 40px 36px; border-radius: 24px; border: 1px solid var(--line); background: radial-gradient(500px 300px at 100% 0%, rgb(var(--acc) / .18), transparent 70%), var(--glass); backdrop-filter: blur(16px); box-shadow: 0 40px 80px -40px rgba(0,0,0,.7); }
+.welcome h1 { font-size: 42px; }
+.steps { list-style: none; margin: 34px 0 0; padding: 0; counter-reset: s; }
+.step { position: relative; padding: 0 0 34px 62px; counter-increment: s; }
+.step::before { content: counter(s); position: absolute; left: 0; top: -4px; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line-hi); display: grid; place-items: center; font: 17px var(--display); color: var(--muted); background: rgb(var(--inset) / .4); }
+.step::after { content: ""; position: absolute; left: 19px; top: 42px; bottom: 6px; border-left: 1px dashed var(--line-hi); }
+.step:last-child::after { display: none; }
+.step.done::before { content: ""; background: var(--uncommon) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23102016' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/18px no-repeat; border-color: var(--uncommon); box-shadow: 0 0 18px rgb(var(--ok) / .45); }
+.step.active::before { border-color: var(--epic); color: #fff; background: radial-gradient(circle, rgb(var(--acc) / .45), rgb(var(--acc) / .1)); box-shadow: 0 0 20px rgb(var(--acc) / .5); }
+.step h2 { margin-bottom: 6px; }
+.step p { color: var(--muted); margin: 0 0 14px; max-width: 60ch; }
+.step .body { display: flex; flex-direction: column; gap: 10px; }
+.pick { display: flex; flex-direction: column; gap: 7px; width: 100%; }
+.pick label { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line-hi); border-radius: 12px; cursor: pointer; font-size: 13px; word-break: break-all; background: rgb(var(--inset) / .35); transition: border-color .15s, background .15s; }
+.pick label:hover { border-color: rgb(var(--acc-soft) / .4); }
+.pick input { accent-color: var(--epic); flex: none; }
+.pick label:has(input:checked) { border-color: var(--epic); background: rgb(var(--acc) / .12); box-shadow: 0 0 20px -6px rgb(var(--acc) / .6); }
+
+/* Website downloads tray */
+body.tray-on .toasts { left: calc(240px + (100vw - 240px - 404px) / 2); }
+.tray { position: fixed; right: 22px; bottom: 22px; z-index: 35; width: 380px; max-height: 60vh; overflow: auto; border-radius: 18px; border: 1px solid var(--line-hi); background: rgb(var(--float) / .94); backdrop-filter: blur(22px); box-shadow: 0 30px 70px rgb(var(--shade) / .65), 0 0 50px -20px rgb(var(--acc) / .4); animation: pop .18s ease-out; }
+.tray-head { display: flex; align-items: center; gap: 10px; padding: 14px 14px 10px 18px; border-bottom: 1px solid var(--line); }
+.tray-head b { font: 16px var(--display); font-weight: 400; }
+.tray-head .icon-btn { margin-left: auto; }
+.tray-note { padding: 10px 18px 4px; color: var(--muted); font-size: 12.5px; }
+.tray-list { list-style: none; margin: 0; padding: 6px 8px 10px; }
+.tray-list li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; padding: 9px 10px; border-radius: 11px; align-items: start; }
+.tray-list li + li { border-top: 1px solid var(--line); }
+.tray-list .ico { display: grid; place-items: center; height: 20px; }
+.tray-list .ico svg.i { width: 17px; height: 17px; }
+.tray-list .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgb(var(--acc-soft) / .2); border-top-color: var(--epic); animation: spin .8s linear infinite; }
+.tray-list .t-name { font-weight: 600; font-size: 13.5px; }
+.tray-list .t-sub { color: var(--muted); font-size: 12px; margin-top: 1px; word-break: break-all; }
+.tray-list .t-acts { display: flex; gap: 14px; margin-top: 5px; font-size: 12.5px; }
+.tray-list li.ok .ico { color: var(--uncommon); } .tray-list li.bad .ico { color: var(--legendary); }
+.tray-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 0 14px 14px; }
+.btn.web { border-color: rgb(var(--acc) / .45); color: var(--epic-name); }
+.btn.web:hover:not(:disabled) { background: rgb(var(--acc) / .14); }
+.st.wait { color: var(--epic-name); }
+.st.wait .spin { width: 13px; height: 13px; border-radius: 50%; border: 2px solid rgb(var(--acc-soft) / .25); border-top-color: var(--epic); animation: spin .8s linear infinite; }
+
+/* Menus, dialogs and toasts */
+.menu { position: fixed; z-index: 30; min-width: 236px; padding: 6px; border-radius: 14px; background: rgb(var(--float-hi) / .92); backdrop-filter: blur(20px); border: 1px solid var(--line-hi); box-shadow: 0 24px 50px rgb(var(--shade) / .6); display: none; }
+.menu.on { display: block; animation: pop .12s ease-out; }
+.menu button { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: none; padding: 9px 10px; border-radius: 9px; text-align: left; color: var(--text); font-size: 13.5px; }
+.menu button:hover, .menu button:focus-visible { background: rgb(var(--acc) / .16); box-shadow: none; }
+.menu button svg.i { width: 16px; height: 16px; color: var(--muted); }
+.menu button.danger { color: var(--hot-text); }
+.menu button.danger svg.i { color: var(--legendary); }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 5px 4px; }
+
+dialog { border: 1px solid var(--line-hi); border-radius: 20px; background: rgb(var(--float) / .95); backdrop-filter: blur(24px); color: var(--text); padding: 0; width: min(640px, calc(100vw - 40px)); box-shadow: 0 40px 100px rgb(var(--shade) / .7), 0 0 60px -20px rgb(var(--acc) / .35); }
+dialog::backdrop { background: rgb(var(--shade) / .62); backdrop-filter: blur(3px); }
+dialog[open] { animation: pop .16s ease-out; }
+@keyframes pop { from { opacity: 0; transform: translateY(6px) scale(.985); } }
+.dlg-head { padding: 24px 26px 4px; }
+.dlg-head p { color: var(--muted); margin: 6px 0 0; }
+.dlg-body { padding: 14px 26px; max-height: 52vh; overflow: auto; }
+.dlg-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 26px 22px; }
+.dlg-body .row { padding: 10px; cursor: pointer; border: 1px solid transparent; }
+.dlg-body .row.sel { border-color: var(--epic); background: rgb(var(--acc) / .12); }
+.dlg-body .row::before { display: none; }
+.dlg-body .bigsearch { background: rgb(var(--inset) / .5); }
+.dlg-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.dlg-list li { padding: 11px 13px; border-radius: 12px; background: rgb(var(--inset) / .45); border: 1px solid var(--line); font-size: 13.5px; }
+.dlg-list li small { display: block; color: var(--muted); margin-top: 2px; }
+
+.toasts { position: fixed; bottom: 24px; left: calc(240px + 50% - 120px); transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 40; pointer-events: none; }
+.toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 11px 17px 11px 13px; border-radius: 13px; background: rgb(var(--float-hi) / .92); backdrop-filter: blur(16px); border: 1px solid var(--line-hi); color: var(--text); font-size: 13.5px; box-shadow: 0 16px 40px rgb(var(--shade) / .55); max-width: 560px; animation: pop .18s ease-out; }
+.toast svg.i { width: 16px; height: 16px; color: var(--uncommon); }
+.toast.err { border-color: rgb(var(--hot) / .5); }
+.toast.err svg.i { color: var(--legendary); }
+.toast.job { font-size: 13px; }
+.toast.job .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgb(var(--acc-soft) / .2); border-top-color: var(--epic); animation: spin .8s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* The hearth mark */
+.brand svg.hearth-mark { width: 40px; height: 40px; flex: none; overflow: visible; filter: drop-shadow(0 4px 14px rgb(var(--acc) / .4)); }
+/* The fire: each layer of flame morphs between three shapes, at a different speed so it never looks like a loop */
+.hearth-mark .hm-f1 { animation: hmF1 1.5s ease-in-out infinite; }
+.hearth-mark .hm-f2 { animation: hmF2 1.15s ease-in-out infinite; }
+.hearth-mark .hm-f3 { animation: hmF3 .85s ease-in-out infinite; }
+@keyframes hmF1 { 0%, 100% { d: path("M18.20 43.00C18.08 37.17 19.52 36.85 20.60 32.40C21.20 34.15 23.80 35.15 23.80 37.40C23.68 31.24 25.52 30.90 26.60 26.20C27.20 28.37 29.60 29.61 29.60 32.40C29.48 27.56 31.52 27.30 32.60 23.60C33.20 26.54 35.80 28.22 35.80 32.00C35.68 29.14 38.12 28.98 39.20 26.80C39.80 30.30 40.80 32.30 40.80 36.80C40.68 33.94 42.72 33.78 43.80 31.60C44.40 35.59 46.00 37.87 46.00 43.00Z"); } 33% { d: path("M18.20 43.00C18.26 36.73 20.74 36.39 20.20 31.60C19.90 33.75 24.08 34.98 24.08 37.75C24.14 32.39 26.54 32.09 26.00 28.00C25.70 29.71 29.81 30.69 29.81 32.89C29.87 27.34 32.74 27.04 32.20 22.80C31.90 26.14 36.08 28.05 36.08 32.35C36.14 30.29 39.14 30.18 38.60 28.60C38.30 31.64 41.01 33.38 41.01 37.29C41.07 33.72 43.94 33.53 43.40 30.80C43.10 35.07 46.00 37.51 46.00 43.00Z"); } 66% { d: path("M18.20 43.00C18.04 38.05 19.66 37.78 21.10 34.00C21.90 35.14 23.66 35.79 23.66 37.26C23.50 31.51 25.86 31.19 27.30 26.80C28.10 28.69 29.36 29.76 29.36 32.19C29.20 28.35 31.66 28.14 33.10 25.20C33.90 27.53 35.66 28.86 35.66 31.86C35.50 29.41 38.46 29.27 39.90 27.40C40.70 30.62 40.55 32.45 40.55 36.59C40.40 34.73 42.86 34.62 44.30 33.20C45.10 36.63 46.00 38.59 46.00 43.00Z"); } }
+@keyframes hmF2 { 0%, 100% { d: path("M22.20 43.00C22.10 39.04 23.90 38.82 24.80 35.80C25.30 36.92 27.40 37.56 27.40 39.00C27.30 33.83 30.30 33.55 31.20 29.60C31.70 32.54 34.60 34.22 34.60 38.00C34.50 35.80 37.10 35.68 38.00 34.00C38.50 37.15 40.20 38.95 40.20 43.00Z"); } 33% { d: path("M22.20 43.00C22.28 38.71 26.12 38.48 25.40 35.20C25.00 36.73 27.54 37.60 27.54 39.56C27.62 34.74 31.42 34.48 30.70 30.80C30.30 33.25 34.81 34.64 34.81 37.79C34.89 36.59 39.12 36.52 38.40 35.60C38.00 38.19 40.20 39.67 40.20 43.00Z"); } 66% { d: path("M22.20 43.00C22.06 39.81 23.24 39.64 24.50 37.20C25.20 37.81 27.22 38.15 27.22 38.93C27.08 33.36 30.54 33.05 31.80 28.80C32.50 32.19 34.50 34.13 34.50 38.49C34.36 35.91 36.24 35.77 37.50 33.80C38.20 37.02 40.20 38.86 40.20 43.00Z"); } }
+@keyframes hmF3 { 0%, 100% { d: path("M27.40 43.00C27.34 39.48 30.06 39.29 30.60 36.60C30.90 38.14 33.60 39.02 33.60 41.00C33.54 39.68 35.46 39.61 36.00 38.60C36.30 40.14 36.80 41.02 36.80 43.00Z"); } 33% { d: path("M27.40 43.00C27.45 39.26 30.65 39.06 30.20 36.20C29.95 38.03 33.77 39.07 33.77 41.42C33.82 39.65 36.05 39.55 35.60 38.20C35.35 39.88 36.80 40.84 36.80 43.00Z"); } 66% { d: path("M27.40 43.00C27.31 40.03 30.29 39.87 31.10 37.60C31.55 38.72 33.46 39.35 33.46 40.79C33.37 40.14 35.69 40.10 36.50 39.60C36.95 40.79 36.80 41.47 36.80 43.00Z"); } }
+/* firelight on the stones and the coal bed flicker along with it */
+.hearth-mark .hm-light { animation: hmLight 1.5s ease-in-out infinite; }
+@keyframes hmLight { 0%, 100% { opacity: 1; } 30% { opacity: .6; } 55% { opacity: .9; } 80% { opacity: .7; } }
+.hearth-mark .hm-bed { transform-box: fill-box; transform-origin: center; animation: hmBed 1.15s ease-in-out infinite; }
+@keyframes hmBed { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .75; transform: scale(.92); } }
+/* the holy light: the halo breathes and a pulse runs out along the rays from the middle */
+.hearth-mark .hm-halo { transform-box: fill-box; transform-origin: center; animation: hmHalo 3.2s ease-in-out infinite; }
+@keyframes hmHalo { 0%, 100% { opacity: .75; transform: scale(.95); } 30% { opacity: 1; transform: scale(1.05); } }
+.hearth-mark .hm-ray { transform-box: view-box; animation: hmRay 3.2s ease-in-out infinite; }
+@keyframes hmRay { 0%, 100% { opacity: .6; transform: scale(.88); } 22% { opacity: 1; transform: scale(1.14); } 50% { opacity: .7; transform: scale(.95); } }
+/* embers drifting up out of the fire */
+.hearth-mark .hm-ember { fill: var(--spark); opacity: 0; transform-box: fill-box; transform-origin: center; animation: hmEmber 2.4s ease-out infinite; }
+.hearth-mark .e2 { animation-delay: .8s; --dx: -1.5px; }
+.hearth-mark .e3 { animation-delay: 1.6s; --dx: 1px; }
+@keyframes hmEmber { 0% { opacity: 0; transform: translate(0, 4px); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx, 1.5px), -9px) scale(.4); } }
+/* now and then the gem catches the light */
+.hearth-mark .hm-glint { opacity: 0; transform-box: fill-box; transform-origin: center; animation: hmGlint 4.8s ease-out infinite; }
+@keyframes hmGlint { 0%, 62% { opacity: 0; transform: scale(.2) rotate(0deg); } 68% { opacity: 1; transform: scale(1.15) rotate(45deg); } 78%, 100% { opacity: 0; transform: scale(.2) rotate(90deg); } }
+
+/* Game picker */
+.gamepick { display: grid; grid-template-columns: 34px minmax(0, 1fr) 18px; align-items: center; gap: 11px; width: 100%; margin: 0 0 18px; padding: 10px 10px 10px 11px; border-radius: 13px; border: 1px solid var(--line-hi); background: linear-gradient(180deg, rgb(var(--acc) / .12), rgb(var(--acc) / .04)); color: var(--text); text-align: left; position: relative; transition: border-color .15s, background .15s; }
+.gamepick:hover, .gamepick[aria-expanded="true"] { border-color: rgb(var(--acc-soft) / .45); background: linear-gradient(180deg, rgb(var(--acc) / .2), rgb(var(--acc) / .07)); }
+.gamepick strong { display: block; font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gamepick small { display: block; font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+.gamepick .chev { width: 16px; height: 16px; color: var(--muted); transition: transform .15s; }
+.gamepick[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.gamepick .gp-dot { position: absolute; top: 7px; left: 36px; width: 8px; height: 8px; border-radius: 50%; background: var(--epic); box-shadow: 0 0 10px var(--epic); }
+.emblem { --gc: var(--epic); width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none; font: 17px/1 var(--display); color: #fff; background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--gc) 75%, white), var(--gc) 45%, color-mix(in srgb, var(--gc) 45%, black)); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 4px 14px -4px var(--gc); text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+.menu.gamemenu { min-width: 300px; padding: 7px; }
+.menu.gamemenu button { gap: 11px; padding: 8px 10px; }
+.menu.gamemenu .emblem { width: 30px; height: 30px; font-size: 15px; border-radius: 9px; }
+.gm-text { flex: 1; min-width: 0; }
+.gm-text strong { display: block; font-weight: 600; font-size: 13.5px; }
+.gm-text small { display: block; font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu.gamemenu button[aria-checked="true"] { background: rgb(var(--acc) / .14); }
+.menu.gamemenu .count { min-width: 22px; padding: 1px 7px; border-radius: 99px; background: linear-gradient(180deg, var(--acc-top), var(--acc-bot)); color: var(--acc-ink); font-size: 12px; font-weight: 700; text-align: center; }
+.menu.gamemenu > button > svg.i:last-child { color: var(--epic-name); }
+
+/* add a game: the menu turns into the list of supported games and WoW versions */
+.menu.gamemenu.adding { width: 380px; max-height: min(640px, calc(100vh - 140px)); overflow: auto; }
+.gm-head { display: flex; align-items: center; gap: 6px; padding: 2px 4px 6px 0; }
+.gm-head b { font: 16px var(--display); font-weight: 400; }
+.gm-head .icon-btn { width: 30px; height: 30px; }
+.gm-group { padding: 8px 10px 4px; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); }
+.gm-loading { display: flex; align-items: center; gap: 10px; padding: 14px 10px; color: var(--muted); font-size: 13px; }
+.gm-loading .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgb(var(--acc-soft) / .2); border-top-color: var(--epic); animation: spin .8s linear infinite; }
+.menu.gamemenu button.opt-added { opacity: .6; }
+.menu.gamemenu .gm-add { flex: none; font-size: 12px; font-weight: 600; color: var(--epic-name); padding: 3px 9px; border-radius: 99px; border: 1px solid rgb(var(--acc) / .45); }
+.menu.gamemenu .gm-found { color: var(--uncommon); }
+
+/* add-game list */
+.inst { display: grid !important; grid-template-columns: 18px 32px minmax(0, 1fr) auto; align-items: center; gap: 12px !important; }
+.inst .emblem { width: 32px; height: 32px; font-size: 15px; border-radius: 9px; }
+.inst-text strong { display: block; font-size: 13.5px; font-weight: 600; word-break: normal; }
+.inst-text small { display: block; color: var(--muted); font-size: 11.5px; word-break: break-all; margin-top: 1px; }
+.inst select.field { height: 34px; font-size: 12.5px; max-width: 250px; }
+
+/* Wide screens */
+.wrap { max-width: 1600px; }
+#view-settings .wrap, #view-welcome .wrap { max-width: 1180px; }
+.listcard { background: var(--glass); border: 1px solid var(--line); border-radius: 18px; padding: 6px; backdrop-filter: blur(14px); box-shadow: 0 30px 60px -36px rgba(0,0,0,.65); }
+.listcard:has(#mineList:empty) { display: none; }
+.listcard:has(.empty) .listhead { display: none; }
+#mineList { background: none; border: 0; padding: 0; box-shadow: none; backdrop-filter: none; }
+#mineList .row, .listhead { grid-template-columns: 48px minmax(0, 1.7fr) minmax(150px, 1fr) 118px 250px; }
+.listhead { display: grid; gap: 16px; padding: 10px 14px 6px; color: var(--faint); font-size: 12px; font-weight: 500; }
+.listhead .r { text-align: right; padding-right: 46px; }
+#mineList .vers { text-align: left; }
+.rel { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+.chip.tag-beta { border-color: rgb(var(--acc) / .45); color: var(--epic-name); }
+.btn.beta { border-color: rgb(var(--hot) / .45); color: var(--hot-text); }
+.btn.beta:hover:not(:disabled) { background: rgb(var(--hot) / .12); }
+.set-h { font: 18px/1.2 var(--display); margin: 30px 0 12px; color: var(--text); }
+.set-h small { font: 13px var(--ui); color: var(--muted); margin-left: 8px; }
+.set-list + .set-h { margin-top: 34px; }
+.btn.danger-ghost { color: var(--hot-text); border-color: rgb(var(--hot) / .35); background: transparent; }
+.btn.danger-ghost:hover:not(:disabled) { background: rgb(var(--hot) / .1); }
+
+/* Theme picker */
+.themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 12px; width: 100%; }
+.theme-card { display: flex; flex-direction: column; gap: 9px; padding: 9px 9px 11px; border-radius: 15px; border: 1px solid var(--line); background: rgba(255,255,255,.025); color: var(--text); text-align: left; transition: border-color .15s, background .15s, transform .15s; }
+.theme-card:hover { border-color: var(--line-hi); background: rgba(255,255,255,.05); transform: translateY(-1px); }
+.theme-card[aria-pressed="true"] { border-color: var(--epic); box-shadow: 0 0 0 1px var(--epic), 0 0 24px -6px var(--epic); }
+.tc-prev { display: grid; grid-template-columns: 26% 1fr; height: 92px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line);
+  background: radial-gradient(120px 70px at 30% -10%, rgb(var(--acc) / .38), transparent 70%), radial-gradient(140px 70px at 80% 120%, rgb(var(--acc2) / .32), transparent 70%), linear-gradient(180deg, var(--bg-top), var(--bg-bot)); }
+.tc-side { background: rgb(var(--side-bg) / .85); border-right: 1px solid var(--line); padding: 9px 6px; display: flex; flex-direction: column; gap: 5px; }
+.tc-side i { display: block; height: 5px; border-radius: 3px; background: rgb(var(--common-rgb) / .22); }
+.tc-side i:first-child { height: 9px; width: 9px; border-radius: 3px; background: linear-gradient(135deg, var(--mark-a), var(--mark-b)); margin-bottom: 3px; }
+.tc-side i.on { background: rgb(var(--acc) / .55); }
+.tc-main { padding: 9px 9px; display: flex; flex-direction: column; gap: 5px; }
+.tc-main .tc-h { height: 7px; width: 60%; border-radius: 3px; background: var(--text); opacity: .85; }
+.tc-main .tc-row { height: 13px; border-radius: 4px; background: rgb(var(--glass-rgb) / .8); border: 1px solid var(--line); display: flex; align-items: center; padding: 0 4px; gap: 4px; }
+.tc-main .tc-row b { width: 5px; height: 5px; border-radius: 50%; background: var(--epic); flex: none; }
+.tc-main .tc-row b.ok { background: var(--uncommon); }
+.tc-main .tc-row s { height: 3px; flex: 1; border-radius: 2px; background: rgb(var(--common-rgb) / .3); }
+.tc-main .tc-btn { margin-top: auto; align-self: flex-start; width: 46%; height: 12px; border-radius: 4px; background: linear-gradient(180deg, var(--acc-top), var(--acc-bot)); border: 1px solid rgba(255,255,255,.15); }
+.tc-prev[data-theme="forever"] .tc-btn { border-color: #B08A4A; }
+.tc-name { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 3px; font-weight: 600; font-size: 13.5px; }
+.tc-name svg.i { width: 15px; height: 15px; color: var(--epic-name); }
+.theme-card:not([aria-pressed="true"]) .tc-name svg.i { display: none; }
+.theme-card small { padding: 0 3px; margin-top: -6px; color: var(--muted); font-size: 12px; }
+
+/* The downloads tray tucked into a pill */
+.tray-pill { position: fixed; right: 22px; bottom: 22px; z-index: 35; display: flex; align-items: center; border-radius: 99px; border: 1px solid var(--line-hi); background: rgb(var(--float) / .94); backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgb(var(--shade) / .55), 0 0 30px -14px rgb(var(--acc) / .6); animation: pop .18s ease-out; }
+.tray-pill > button { display: flex; align-items: center; gap: 10px; border: 0; background: none; color: var(--text); padding: 10px 16px 10px 14px; border-radius: 99px; font-size: 13px; font-weight: 600; }
+.tray-pill > button small { font-weight: 400; color: var(--muted); }
+.tray-pill > button svg.i { width: 16px; height: 16px; }
+.tray-pill .ok { color: var(--uncommon); } .tray-pill .bad { color: var(--legendary); }
+.tray-pill .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgb(var(--acc-soft) / .2); border-top-color: var(--epic); animation: spin .8s linear infinite; }
+.tray-pill .pill-x { width: 30px; height: 30px; margin-right: 5px; padding: 0; justify-content: center; color: var(--muted); }
+.tray-pill .pill-x:hover { color: var(--text); background: rgba(255,255,255,.07); }
+
+/* The app's own window: the interface runs right up to the top edge and the window buttons float over it on the right */
+body.native .side { padding-top: 14px; }
+body.native .view { padding-top: 60px; }
+body.native .bannerwrap { padding-top: 54px; }
+body.native.banner-on .view { padding-top: 24px; }
+.titleband { display: none; }
+/* The window's title strip and its minimize, maximize and close buttons. "app-region: drag" tells
+   the window's browser engine to treat the strip like a real title bar: drag to move, double click
+   to maximize, Snap. The buttons opt back out so they can be clicked. */
+.winbar { display: none; }
+body.native .winbar { display: flex; justify-content: flex-end; align-items: flex-start; position: fixed; top: 0; left: 0; right: 0; height: 44px; z-index: 60; app-region: drag; -webkit-app-region: drag; }
+body.native.pane-open .winbar .winbtn { display: none; }
+.winbtn { app-region: no-drag; -webkit-app-region: no-drag; width: 46px; height: 40px; border: 0; padding: 0; margin: 0; border-radius: 0; background: transparent; color: color-mix(in srgb, var(--text) 87%, black); display: grid; place-items: center; cursor: default; }
+.winbtn:hover { background: rgba(255,255,255,.086); }
+.winbtn.close:hover { background: #E81123; color: #fff; }
+.winbtn i { display: block; position: relative; width: 10px; height: 10px; }
+.winbtn.min i::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 1.1px solid currentColor; }
+.winbtn.max i { border: 1.1px solid currentColor; }
+body.win-max .winbtn.max i { width: 8px; height: 8px; margin: 2px 2px 0 0; }
+body.win-max .winbtn.max i::after { content: ""; position: absolute; left: 1px; top: -3.2px; width: 8px; height: 8px; border-top: 1.1px solid currentColor; border-right: 1.1px solid currentColor; }
+.winbtn.close i::before, .winbtn.close i::after { content: ""; position: absolute; left: 50%; top: -2px; height: 14px; border-left: 1.1px solid currentColor; }
+.winbtn.close i::before { transform: rotate(45deg); }
+.winbtn.close i::after { transform: rotate(-45deg); }
+body.native .titleband { display: flex; align-items: center; gap: 8px; position: absolute; top: 0; left: 0; right: 0; height: 44px; padding: 0 160px 0 44px; z-index: 4; pointer-events: none; font-size: 12.5px; color: var(--faint);
+  background: linear-gradient(180deg, rgb(var(--side-bg) / .94) 0%, rgb(var(--side-bg) / .82) 60%, rgb(var(--side-bg) / 0) 100%); }
+body.native .titleband b { color: var(--muted); font-weight: 600; }
+body.native .titleband .tb-sep { opacity: .6; }
+body.native .toolbar { top: -16px; }
+body.native .toolbar.stuck { background: rgb(var(--side-bg) / .9); }
+
+/* Details panel, so big screens get used */
+#view-mine .wrap, #view-find .wrap { max-width: none; }
+.mine-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; align-items: start; }
+.mine-main { min-width: 0; }
+.inspector { display: none; }
+#mineList .row { cursor: pointer; }
+#mineList .row.sel { background: rgb(var(--acc) / .13); box-shadow: inset 3px 0 0 var(--epic); }
+#mineList .row.sel::before, #mineList .row.sel + .row::before { opacity: 0; }
+@media (min-width: 1500px) {
+  .mine-layout { grid-template-columns: minmax(0, 1fr) clamp(400px, 26vw, 780px); }
+  .inspector { display: block; position: sticky; top: 0; max-height: calc(100vh - 68px); overflow: auto; border-radius: 22px; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(16px); box-shadow: 0 30px 60px -36px rgba(0,0,0,.7); }
+  body.native .inspector { max-height: calc(100vh - 86px); }
+}
+/* native window: the CurseForge page is standing in for the details panel */
+body.pane-docked .mine-layout { grid-template-columns: minmax(0, 1fr); }
+body.pane-docked .inspector { display: none !important; }
+body.pane-docked #view-mine { padding-right: var(--dock-pad, 26px); }
+.ins-cover { height: clamp(200px, 13vw, 300px); border-radius: 21px 21px 0 0; position: relative; background: var(--cover, radial-gradient(500px 220px at 30% 20%, rgb(var(--acc) / .45), transparent 70%), linear-gradient(135deg, var(--cover-a), var(--cover-b))); background-size: cover; background-position: center; }
+.ins-cover::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgb(var(--float) / .05) 20%, rgb(var(--float) / .75) 70%, rgb(var(--float) / 1) 100%); }
+.ins-body { padding: 0 24px 26px; margin-top: -58px; position: relative; z-index: 1; }
+.ins-head { display: flex; gap: 16px; align-items: flex-end; }
+.ins-head .logo { width: 86px; height: 86px; border-radius: 19px; font-size: 36px; flex: none; }
+.ins-head h2 { font-size: 27px; line-height: 1.1; margin: 0 0 4px; word-break: break-word; }
+.ins-head .meta { white-space: normal; }
+.ins-status { margin-top: 18px; display: flex; align-items: flex-start; gap: 9px; font-size: 14px; }
+.ins-status svg.i { margin-top: 1px; }
+.ins-status.epic { color: var(--epic-name); } .ins-status.ok { color: var(--uncommon); } .ins-status.warn { color: var(--hot-text); } .ins-status.poor { color: var(--muted); }
+.ins-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+.ins-summary { color: var(--muted); margin: 18px 0 0; line-height: 1.55; }
+.ins-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0 0; }
+.ins-facts > div { background: rgb(var(--inset) / .38); border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; min-width: 0; }
+.ins-facts dt { font-size: 12px; color: var(--faint); margin-bottom: 3px; }
+.ins-facts dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; word-break: break-word; }
+.ins-facts dd small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.ins-facts .wide { grid-column: 1 / -1; }
+.flv { display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 9px; border-radius: 99px; border: 1px solid var(--line-hi); color: var(--muted); margin: 4px 5px 0 0; }
+.flv.on { border-color: rgb(var(--acc) / .6); color: #fff; background: rgb(var(--acc) / .2); }
+.ins-sec { margin-top: 24px; }
+.ins-sec h3 { font: 17px var(--display); margin: 0 0 9px; font-weight: 400; }
+.ins-log { white-space: pre-wrap; font-size: 13px; line-height: 1.6; color: var(--text); background: rgb(var(--inset) / .38); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; max-height: 280px; overflow: auto; }
+.ins-log.dim { color: var(--muted); }
+.ins-shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ins-shots button { padding: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: none; cursor: zoom-in; }
+.ins-shots img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; transition: transform .25s; }
+.ins-shots button:hover img { transform: scale(1.05); }
+.ins-empty { padding: 60px 30px; text-align: center; color: var(--muted); }
+.ins-dlg .ins-cover { border-radius: 19px 19px 0 0; }
+dialog.wide { width: min(900px, calc(100vw - 40px)); }
+dialog.wide img { display: block; width: 100%; border-radius: 19px; }
+
+/* The list's columns follow the list's own width (not the window's), so it keeps its layout when
+   the CurseForge page stands in for the details panel. */
+.listcard { container-type: inline-size; }
+/* wide lists: a short description column instead of empty space */
+.about, .listhead .h-about { display: none; }
+.about { color: var(--muted); font-size: 13px; line-height: 1.45; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }   /* only shown when the list is wide enough, see below */
+@container (min-width: 1320px) {
+  #mineList .row, .listhead { grid-template-columns: 48px minmax(220px, .8fr) minmax(0, 1.5fr) minmax(150px, .6fr) 118px 250px; }
+  .about { display: -webkit-box; } .listhead .h-about { display: block; }
+}
+
+@container (max-width: 900px) {
+  #mineList .row, .listhead { grid-template-columns: 48px minmax(0, 1fr) minmax(130px, auto) 250px; }
+  .rel, .listhead .h-rel { display: none; }
+}
+@media (max-width: 900px) {
+  .app { grid-template-columns: 70px 1fr; }
+  .brand b, .nav .label, .side-foot .where, .ver-note { display: none; }
+  .brand { justify-content: center; padding: 0 0 24px; }
+  .nav { justify-content: center; }
+  .nav[aria-current="page"]::before { left: -14px; }
+  .nav .count { position: absolute; top: 2px; right: 2px; min-width: 18px; padding: 0 5px; font-size: 11px; }
+  .nav .dot { position: absolute; top: 6px; right: 8px; }
+  .view { padding: 24px 20px 50px; }
+  .bannerwrap { padding: 12px 20px 0; }
+  .hero { grid-template-columns: 1fr; padding: 24px; }
+  .sigil { position: absolute; right: -24px; top: -24px; width: 150px; height: 150px; opacity: .45; }
+  .sigil-core { display: none; }
+  .row, #mineList .row { grid-template-columns: 44px minmax(0,1fr) auto; }
+  .listhead { display: none; }
+  .gamepick { grid-template-columns: 34px; padding: 6px; justify-content: center; }
+  .gamepick .gp-text, .gamepick .chev { display: none; }
+  .row .vers { display: none; }
+  .state { min-width: 0; }
+  .set { grid-template-columns: 1fr; gap: 12px; }
+  .toasts { left: calc(70px + 50% - 35px); }
+  body.tray-on .toasts { left: calc(70px + (100vw - 70px - 404px) / 2); }
+  .tray { width: min(380px, calc(100vw - 100px)); }
+  .filter { width: 180px; }
+  #findList { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 6.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="18.5" cy="12" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.6L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.6L20 16M20 20v-4h-4"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></symbol>
+  <symbol id="i-unlink" viewBox="0 0 24 24"><path d="M15.5 13.5l3.5-3.5a4.5 4.5 0 0 0-6.4-6.4L9 7.2M8.5 10.5 5 14a4.5 4.5 0 0 0 6.4 6.4L15 16.8M4 4l16 16"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M10 9v6M14 9v6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M10.5 9l4.5 3-4.5 3z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 1.8h6a2 2 0 0 0 2-1.8L18 7M9 7V4.5h6V7"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4.5M12 16h.01"/></symbol>
+  <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 3.5v11M7.5 10l4.5 4.5 4.5-4.5M4.5 15.5v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m14 7-5 5 5 5"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9.5 3.5h5M10.5 3.5v6L5.2 18.2A1.5 1.5 0 0 0 6.5 20.5h11a1.5 1.5 0 0 0 1.3-2.3L13.5 9.5v-6M7.6 14.5h8.8"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+</svg>
+
+<div class="winbar" aria-hidden="true">
+  <button class="winbtn min" data-win="min" title="Minimize" tabindex="-1"><i></i></button>
+  <button class="winbtn max" data-win="max" title="Maximize" tabindex="-1"><i></i></button>
+  <button class="winbtn close" data-win="close" title="Close" tabindex="-1"><i></i></button>
+</div>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <!-- The hearth mark. Same drawing as ui/icons/hearth.svg, but colored by the theme and animated:
+           the fire flickers, embers float up, the holy light pulses out along the rays and the gem glints now and then. -->
+      <svg class="hearth-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="hmTile" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:color-mix(in srgb, var(--mark-b) 16%, var(--mark-bg))"/><stop offset="1" style="stop-color:color-mix(in srgb, var(--mark-bg) 55%, #000000)"/></linearGradient>
+          <radialGradient id="hmTileTop" cx=".5" cy="0" r=".9"><stop offset="0" stop-color="#fff" stop-opacity=".09"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+          <radialGradient id="hmHalo" cx="32" cy="30" r="28" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:var(--mark-ember)" stop-opacity="0.55"/><stop offset="0.42" style="stop-color:var(--mark-b)" stop-opacity="0.26"/><stop offset="1" style="stop-color:var(--mark-b)" stop-opacity="0"/></radialGradient>
+          <radialGradient id="hmRay" cx="32" cy="34" r="30" gradientUnits="userSpaceOnUse"><stop offset="0.6" style="stop-color:color-mix(in srgb, var(--mark-a) 25%, #FFFFFF)"/><stop offset="1" style="stop-color:var(--mark-a)" stop-opacity="0.5"/></radialGradient>
+          <linearGradient id="hmStone" x1="0" y1="16" x2="0" y2="43" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:color-mix(in srgb, var(--mark-stone) 35%, #FFFFFF)"/><stop offset="0.4" style="stop-color:var(--mark-stone)"/><stop offset="1" style="stop-color:color-mix(in srgb, var(--mark-stone) 40%, #0E0B14)"/></linearGradient>
+          <linearGradient id="hmLedge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:color-mix(in srgb, var(--mark-stone) 22%, #FFFFFF)"/><stop offset="1" style="stop-color:color-mix(in srgb, var(--mark-stone) 85%, #0E0B14)"/></linearGradient>
+          <linearGradient id="hmBrick" x1="0" y1="45" x2="0" y2="58" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:color-mix(in srgb, var(--mark-stone) 85%, #0E0B14)"/><stop offset="1" style="stop-color:color-mix(in srgb, var(--mark-stone) 32%, #0E0B14)"/></linearGradient>
+          <radialGradient id="hmLight" cx="32" cy="40" r="22" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:var(--mark-ember)" stop-opacity="0.75"/><stop offset="0.6" style="stop-color:var(--mark-ember)" stop-opacity="0.18"/><stop offset="1" style="stop-color:var(--mark-ember)" stop-opacity="0"/></radialGradient>
+          <linearGradient id="hmMouth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0B0612"/><stop offset="1" style="stop-color:color-mix(in srgb, var(--mark-flame) 28%, #0B0612)"/></linearGradient>
+          <radialGradient id="hmBed" cx="32" cy="43" r="13" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFF6E6"/><stop offset="0.4" style="stop-color:var(--mark-ember)" stop-opacity="0.7"/><stop offset="1" style="stop-color:var(--mark-ember)" stop-opacity="0"/></radialGradient>
+          <linearGradient id="hmFire" x1="0" y1="21" x2="0" y2="43" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:var(--mark-flame)"/><stop offset="0.45" style="stop-color:var(--mark-ember)"/><stop offset="1" style="stop-color:var(--spark)"/></linearGradient>
+          <linearGradient id="hmFire2" x1="0" y1="28" x2="0" y2="43" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:var(--spark)"/><stop offset="1" style="stop-color:color-mix(in srgb, var(--spark) 30%, #FFFFFF)"/></linearGradient>
+          <radialGradient id="hmGem" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.4" style="stop-color:color-mix(in srgb, var(--mark-gem) 60%, #FFFFFF)"/><stop offset="1" style="stop-color:color-mix(in srgb, var(--mark-gem) 70%, #000000)"/></radialGradient>
+          <clipPath id="hmMouthClip"><path d="M17.8 42.5V34A14.2 12.4 0 0 1 46.2 34V42.5Z"/></clipPath>
+          <clipPath id="hmArchClip"><path d="M12.5 42.5V34A19.5 17 0 0 1 51.5 34V42.5Z"/></clipPath>
+        </defs>
+        <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#hmTile)"/>
+        <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#hmTileTop)"/>
+        <rect x="2.5" y="2.5" width="59" height="59" rx="14.5" fill="none" style="stroke:rgb(var(--acc-soft) / .26)"/>
+        <circle class="hm-halo" cx="32" cy="30" r="28" fill="url(#hmHalo)"/>
+        <g fill="url(#hmRay)"><path class="hm-ray" d="M11.72 26.47L7.17 25.93L11.17 28.18Z" style="transform-origin:11.45px 27.32px;animation-delay:0.32s"/><path class="hm-ray" d="M16.33 20.23L10.07 16.87L14.85 22.12Z" style="transform-origin:15.59px 21.18px;animation-delay:0.23s"/><path class="hm-ray" d="M22.90 16.24L19.28 11.97L21.17 17.24Z" style="transform-origin:22.03px 16.74px;animation-delay:0.13s"/><path class="hm-ray" d="M33.50 14.60L32.00 4.10L30.50 14.60Z" style="transform-origin:32.00px 14.60px;animation-delay:0.00s"/><path class="hm-ray" d="M42.83 17.24L44.72 11.97L41.10 16.24Z" style="transform-origin:41.97px 16.74px;animation-delay:0.13s"/><path class="hm-ray" d="M49.15 22.12L53.93 16.87L47.67 20.23Z" style="transform-origin:48.41px 21.18px;animation-delay:0.23s"/><path class="hm-ray" d="M52.83 28.18L56.83 25.93L52.28 26.47Z" style="transform-origin:52.55px 27.32px;animation-delay:0.32s"/></g>
+        <path d="M12.5 42.5V34A19.5 17 0 0 1 51.5 34V42.5Z" fill="url(#hmStone)"/>
+        <g clip-path="url(#hmArchClip)"><circle class="hm-light" cx="32" cy="40" r="22" fill="url(#hmLight)"/></g>
+        <path d="M20.61 26.60L16.36 23.84M26.44 22.59L24.37 18.36M37.56 22.59L39.63 18.36M43.39 26.60L47.64 23.84M12.5 38.5H17.8M46.2 38.5H51.5" stroke="#120C1C" stroke-opacity=".7" stroke-width=".7" fill="none"/>
+        <path d="M13.4 34A18.6 16.1 0 0 1 50.6 34" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width=".7"/>
+        <path d="M17.8 42.5V34A14.2 12.4 0 0 1 46.2 34V42.5Z" fill="url(#hmMouth)"/>
+        <g clip-path="url(#hmMouthClip)">
+          <ellipse class="hm-bed" cx="32" cy="43" rx="16" ry="9" fill="url(#hmBed)"/>
+          <path class="hm-f1" d="M18.20 43.00C18.08 37.17 19.52 36.85 20.60 32.40C21.20 34.15 23.80 35.15 23.80 37.40C23.68 31.24 25.52 30.90 26.60 26.20C27.20 28.37 29.60 29.61 29.60 32.40C29.48 27.56 31.52 27.30 32.60 23.60C33.20 26.54 35.80 28.22 35.80 32.00C35.68 29.14 38.12 28.98 39.20 26.80C39.80 30.30 40.80 32.30 40.80 36.80C40.68 33.94 42.72 33.78 43.80 31.60C44.40 35.59 46.00 37.87 46.00 43.00Z" fill="url(#hmFire)"/>
+          <path class="hm-f2" d="M22.20 43.00C22.10 39.04 23.90 38.82 24.80 35.80C25.30 36.92 27.40 37.56 27.40 39.00C27.30 33.83 30.30 33.55 31.20 29.60C31.70 32.54 34.60 34.22 34.60 38.00C34.50 35.80 37.10 35.68 38.00 34.00C38.50 37.15 40.20 38.95 40.20 43.00Z" fill="url(#hmFire2)"/>
+          <path class="hm-f3" d="M27.40 43.00C27.34 39.48 30.06 39.29 30.60 36.60C30.90 38.14 33.60 39.02 33.60 41.00C33.54 39.68 35.46 39.61 36.00 38.60C36.30 40.14 36.80 41.02 36.80 43.00Z" fill="#FFFCF4"/>
+          <circle class="hm-ember e1" cx="27" cy="34" r=".8"/><circle class="hm-ember e2" cx="35.5" cy="31" r=".7"/><circle class="hm-ember e3" cx="40" cy="35" r=".6"/>
+        </g>
+        <path d="M17.8 34A14.2 12.4 0 0 1 46.2 34" fill="none" style="stroke:var(--mark-ember)" stroke-opacity=".5" stroke-width=".7"/>
+        <path d="M30.27 21.69L28.72 15.42L35.28 15.42L33.73 21.69Z" fill="url(#hmLedge)" stroke="#120C1C" stroke-opacity=".6" stroke-width=".6"/>
+        <path d="M32 15.799999999999999L33.9 18.4L32 21.0L30.1 18.4Z" fill="url(#hmGem)"/>
+        <path d="M32 15.799999999999999L33.9 18.4L32 18.4Z" fill="#fff" fill-opacity=".45"/>
+        <path class="hm-glint" d="M33.6 13.799999999999999L34.1 15.499999999999998L35.8 15.999999999999998L34.1 16.5L33.6 18.2L33.1 16.5L31.4 15.999999999999998L33.1 15.499999999999998Z" fill="#fff"/>
+        <rect x="5.5" y="41.6" width="53" height="3.2" rx="1.5" fill="url(#hmLedge)"/>
+        <rect class="hm-light" x="5.5" y="41.6" width="53" height="3.2" rx="1.5" fill="url(#hmLight)"/>
+        <g fill="url(#hmBrick)"><rect x="7.42" y="44.90" width="7.75" height="3.3" rx=".6"/><rect x="16.02" y="44.90" width="10.35" height="3.3" rx=".6"/><rect x="27.23" y="44.90" width="10.35" height="3.3" rx=".6"/><rect x="38.42" y="44.90" width="10.35" height="3.3" rx=".6"/><rect x="49.62" y="44.90" width="6.95" height="3.3" rx=".6"/><rect x="7.42" y="49.05" width="2.55" height="3.3" rx=".6"/><rect x="10.83" y="49.05" width="9.95" height="3.3" rx=".6"/><rect x="21.62" y="49.05" width="10.35" height="3.3" rx=".6"/><rect x="32.82" y="49.05" width="10.35" height="3.3" rx=".6"/><rect x="44.02" y="49.05" width="9.15" height="3.3" rx=".6"/><rect x="54.02" y="49.05" width="2.55" height="3.3" rx=".6"/><rect x="7.42" y="53.20" width="7.75" height="3.3" rx=".6"/><rect x="16.02" y="53.20" width="10.35" height="3.3" rx=".6"/><rect x="27.23" y="53.20" width="10.35" height="3.3" rx=".6"/><rect x="38.42" y="53.20" width="10.35" height="3.3" rx=".6"/><rect x="49.62" y="53.20" width="6.95" height="3.3" rx=".6"/></g>
+        <g class="hm-light" fill="url(#hmLight)" opacity=".55"><rect x="7.42" y="44.90" width="7.75" height="3.3" rx=".6"/><rect x="16.02" y="44.90" width="10.35" height="3.3" rx=".6"/><rect x="27.23" y="44.90" width="10.35" height="3.3" rx=".6"/><rect x="38.42" y="44.90" width="10.35" height="3.3" rx=".6"/><rect x="49.62" y="44.90" width="6.95" height="3.3" rx=".6"/><rect x="7.42" y="49.05" width="2.55" height="3.3" rx=".6"/><rect x="10.83" y="49.05" width="9.95" height="3.3" rx=".6"/><rect x="21.62" y="49.05" width="10.35" height="3.3" rx=".6"/><rect x="32.82" y="49.05" width="10.35" height="3.3" rx=".6"/><rect x="44.02" y="49.05" width="9.15" height="3.3" rx=".6"/><rect x="54.02" y="49.05" width="2.55" height="3.3" rx=".6"/><rect x="7.42" y="53.20" width="7.75" height="3.3" rx=".6"/><rect x="16.02" y="53.20" width="10.35" height="3.3" rx=".6"/><rect x="27.23" y="53.20" width="10.35" height="3.3" rx=".6"/><rect x="38.42" y="53.20" width="10.35" height="3.3" rx=".6"/><rect x="49.62" y="53.20" width="6.95" height="3.3" rx=".6"/></g>
+      </svg>
+      <b>Blessed Hearth<span>A not so cursed client</span></b>
+    </div>
+    <button class="gamepick" id="gamePick" aria-haspopup="menu" aria-expanded="false" title="Switch game or WoW version">
+      <span class="emblem" id="gpEmblem">?</span>
+      <span class="gp-text"><strong id="gpLabel">No game yet</strong><small id="gpPath">Add one to get started</small></span>
+      <svg class="i chev"><use href="#i-chev"/></svg>
+      <span class="gp-dot" id="gpDot" hidden title="Another game has updates"></span>
+    </button>
+    <nav aria-label="Main">
+      <button class="nav" data-view="mine"><svg class="i"><use href="#i-box"/></svg><span class="label" id="navMineLbl">My Addons</span><span class="count" id="navCount"></span></button>
+      <button class="nav" data-view="find"><svg class="i"><use href="#i-search"/></svg><span class="label" id="navFindLbl">Find Addons</span></button>
+      <button class="nav" data-view="settings"><svg class="i"><use href="#i-gear"/></svg><span class="label">Settings</span><span class="dot" id="navKeyDot" hidden title="Your API key needs attention"></span></button>
+    </nav>
+    <div class="side-foot">
+      <div class="ver-note" id="verNote"></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="jobbar" id="jobbar"><div class="fill"></div></div>
+    <div class="titleband" aria-hidden="true"><b id="tbGame"></b><span class="tb-sep">›</span><span id="tbView"></span></div>
+    <div class="bannerwrap" id="keyBannerWrap" hidden>
+      <div class="keybanner" role="alert"><svg class="i"><use href="#i-alert"/></svg><span>CurseForge is rejecting your API key, so update checks, search and downloads are paused.</span><button class="btn sm" id="keyBannerFix">Fix in Settings</button></div>
+    </div>
+
+    <!-- My addons -->
+    <section class="view" id="view-mine" aria-label="My addons">
+      <div class="wrap mine-layout">
+        <div class="mine-main">
+        <div class="hero">
+          <div>
+            <h1 id="headline">Your addons</h1>
+            <p class="sub" id="subline"></p>
+          <div class="hero-actions">
+            <button class="btn ghost" id="checkBtn"><svg class="i"><use href="#i-refresh"/></svg>Check for updates</button>
+            <button class="btn primary" id="updAllBtn" hidden><svg class="i"><use href="#i-down"/></svg><span>Update all</span></button>
+            <button class="btn web" id="webAllBtn" hidden title="These authors only allow downloads from the CurseForge website"><svg class="i"><use href="#i-ext"/></svg><span>Get on CurseForge</span></button>
+          </div>
+          </div>
+          <div class="sigil s-idle" id="sigil" aria-hidden="true">
+            <svg class="ring" viewBox="0 0 200 200">
+              <defs><radialGradient id="sigilCore"><stop offset="0" stop-color="currentColor" stop-opacity=".55"/><stop offset=".6" stop-color="currentColor" stop-opacity=".12"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
+              <circle class="core-glow" cx="100" cy="100" r="78" fill="url(#sigilCore)"/>
+              <g class="spin" fill="none" stroke="currentColor">
+                <circle cx="100" cy="100" r="94" stroke-width="1" stroke-dasharray="1.5 5.5" opacity=".75"/>
+                <path d="M100 2 l5 8 -5 8 -5 -8z M100 182 l5 8 -5 8 -5 -8z M2 100 l8 -5 8 5 -8 5z M182 100 l8 -5 8 5 -8 5z" fill="currentColor" stroke="none" opacity=".9"/>
+              </g>
+              <g class="spin-rev" fill="none" stroke="currentColor">
+                <circle cx="100" cy="100" r="82" stroke-width="2" stroke-dasharray="22 8 3 8" opacity=".55"/>
+              </g>
+              <circle cx="100" cy="100" r="70" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".5"/>
+              <circle cx="100" cy="100" r="64" fill="none" stroke="currentColor" stroke-width=".6" opacity=".35"/>
+            </svg>
+            <div class="sigil-core"><b id="sigilNum"></b><small id="sigilLabel"></small></div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="seg" id="mineSeg" role="group" aria-label="Show">
+            <button data-f="all" aria-pressed="true">All<span class="k" id="kAll"></span></button>
+            <button data-f="updates" aria-pressed="false">Updates<span class="k" id="kUpd"></span></button>
+            <button data-f="unlinked" aria-pressed="false">Not linked<span class="k" id="kUnl"></span></button>
+            <button data-f="other" aria-pressed="false">Needs attention<span class="k" id="kOth"></span></button>
+          </div>
+          <label class="filter"><svg class="i"><use href="#i-search"/></svg><input id="mineFilter" type="search" placeholder="Filter your addons" aria-label="Filter your addons"></label>
+        </div>
+        <div class="listcard">
+          <div class="listhead" aria-hidden="true"><span></span><span>Addon</span><span class="h-about">About</span><span>Version</span><span class="h-rel">Released</span><span class="r">Status</span></div>
+          <ul class="list" id="mineList"></ul>
+        </div>
+        </div>
+        <aside class="inspector" id="inspector" aria-label="Addon details"></aside>
+      </div>
+    </section>
+
+    <!-- Find -->
+    <section class="view" id="view-find" aria-label="Find addons">
+      <div class="wrap">
+        <div class="find-head">
+          <h1 id="findTitle">Find Addons</h1>
+          <p class="sub" id="findSub">Search everything on CurseForge. Install puts it straight into your AddOns folder.</p>
+          <label class="bigsearch"><svg class="i"><use href="#i-search"/></svg><input id="findInput" type="search" placeholder="Search by name or what it does, like quest helper or bags" aria-label="Search CurseForge"><kbd>Enter</kbd></label>
+          <div class="find-opts">
+            <div class="seg" id="sortSeg" role="group" aria-label="Sort by">
+              <button data-s="2" aria-pressed="true">Popular</button>
+              <button data-s="3" aria-pressed="false">Recently updated</button>
+              <button data-s="6" aria-pressed="false">Most downloaded</button>
+              <button data-s="4" aria-pressed="false">Name</button>
+            </div>
+            <label class="toggle" id="foreverToggle"><input type="checkbox" id="foreverOnly" checked><span class="sw"></span><span id="foreverLbl">Only show addons made for this version</span></label>
+          </div>
+        </div>
+        <div class="result-count" id="findCount"></div>
+        <ul class="list" id="findList"></ul>
+        <div class="loadmore"><button class="btn" id="moreBtn" hidden>Show more</button></div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section class="view" id="view-settings" aria-label="Settings">
+      <div class="wrap">
+        <h1>Settings</h1>
+        <h2 class="set-h" id="setGameHead">This game</h2>
+        <div class="set-list">
+          <div class="set">
+            <div><h3 id="setFolderTitle">AddOns folder</h3><p id="setFolderDesc">The Interface\AddOns folder of this game.</p></div>
+            <div class="ctl">
+              <div class="mono-path" id="setPath"></div>
+              <div class="line"><button class="btn" id="setPick"><svg class="i"><use href="#i-folder"/></svg>Choose folder</button><button class="btn ghost" data-open="addons">Open in Explorer</button></div>
+              <span class="msg-err" id="folderErr"></span>
+            </div>
+          </div>
+          <div class="set" id="setFlavorRow">
+            <div><h3>Game version</h3><p id="setFlavorDesc">Which CurseForge files count as files for this version. Detected automatically.</p></div>
+            <div class="ctl">
+              <div class="line"><select class="field" id="flavorSel"></select><button class="btn ghost" id="flavorLoad">Load list from CurseForge</button></div>
+              <span class="msg-err" id="flavorErr"></span>
+            </div>
+          </div>
+          <div class="set">
+            <div><h3>Remove from the app</h3><p>The app stops managing this game. Its addons stay right where they are.</p></div>
+            <div class="ctl"><button class="btn danger-ghost" id="setRemove"><svg class="i"><use href="#i-trash"/></svg><span>Remove</span></button></div>
+          </div>
+        </div>
+        <h2 class="set-h">All games</h2>
+        <div class="set-list">
+          <div class="set">
+            <div><h3>CurseForge API key</h3><p>Lets the app look up addons and downloads. It stays on this PC.</p></div>
+            <div class="ctl">
+              <div class="keystat" id="keyStat"></div>
+              <div class="line" id="keyActions"><button class="btn sm" id="keyTest"><svg class="i"><use href="#i-refresh"/></svg>Test key</button><button class="linkish" id="keyChange">Change key</button></div>
+              <div class="keytest" id="keyTestOut" hidden></div>
+              <div class="line" id="keyEdit" hidden><input class="field wide secret" id="keyInput" type="text" placeholder="Paste your API key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other"><button class="btn primary" id="keySave">Save key</button></div>
+              <span class="help">Get a free key at <button class="linkish" data-url="https://console.curseforge.com/">console.curseforge.com</button> under API keys.</span>
+              <span class="msg-err" id="keyErr"></span>
+            </div>
+          </div>
+          <div class="set">
+            <div><h3>Update channel</h3><p>Beta and alpha builds arrive sooner but can be rough.</p></div>
+            <div class="ctl">
+              <div class="seg" id="chanSeg" role="group" aria-label="Update channel">
+                <button data-c="1" aria-pressed="true">Release</button>
+                <button data-c="2" aria-pressed="false">Release and beta</button>
+                <button data-c="3" aria-pressed="false">Everything, including alpha</button>
+              </div>
+            </div>
+          </div>
+          <div class="set">
+            <div><h3>Backups</h3><p>Before replacing or removing an addon, keep a copy next to your AddOns folder.</p></div>
+            <div class="ctl">
+              <label class="toggle"><input type="checkbox" id="keepBk"><span class="sw"></span>Keep backups</label>
+              <div class="line"><span class="help">Keep the newest</span><input class="field" id="maxBk" type="number" min="1" max="200" style="width:84px"><span class="help">backups</span><button class="btn ghost sm" data-open="backups">Open backups folder</button></div>
+            </div>
+          </div>
+        </div>
+        <h2 class="set-h">Appearance</h2>
+        <div class="set-list">
+          <div class="set">
+            <div><h3>Theme</h3><p>Changes the whole window right away.</p></div>
+            <div class="ctl"><div class="themes" id="themePick" role="group" aria-label="Theme"></div></div>
+          </div>
+        </div>
+        <h2 class="set-h">Running in the background</h2>
+        <div class="set-list">
+          <div class="set">
+            <div><h3>Check for updates</h3><p>While the app is running, even tucked in the tray, it checks all your games every so often. When new updates turn up and the window isn't in front of you, a Windows notification lists them.</p></div>
+            <div class="ctl">
+              <div class="line">
+                <select class="field" id="checkSel" aria-label="How often to check">
+                  <option value="1">Every hour</option><option value="3">Every 3 hours</option><option value="6">Every 6 hours</option>
+                  <option value="12">Every 12 hours</option><option value="24">Once a day</option><option value="0">Never</option>
+                </select>
+                <button class="btn ghost sm" id="checkAll"><svg class="i"><use href="#i-refresh"/></svg>Check all games now</button>
+              </div>
+              <span class="help" id="checkNote"></span>
+            </div>
+          </div>
+          <div class="set">
+            <div><h3>Keep running in the tray</h3><p>Closing the window tucks the app into the system tray, the small icons by the clock, instead of quitting. Click the icon to bring it back. To quit, right-click it and choose Exit.</p></div>
+            <div class="ctl">
+              <label class="toggle"><input type="checkbox" id="trayOn"><span class="sw"></span>Keep running in the tray</label>
+              <span class="help" id="trayNote" hidden></span>
+            </div>
+          </div>
+          <div class="set">
+            <div><h3>Start with Windows</h3><p>Opens the app when you sign in to Windows.</p></div>
+            <div class="ctl">
+              <label class="toggle"><input type="checkbox" id="autoOn"><span class="sw"></span>Start with Windows</label>
+              <label class="toggle sub" id="minRow"><input type="checkbox" id="autoMin"><span class="sw"></span><span id="autoMinLbl">Start minimized</span></label>
+              <span class="help" id="autoNote"></span>
+              <span class="msg-err" id="autoErr"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Welcome -->
+    <section class="view" id="view-welcome" aria-label="Get started">
+      <div class="welcome">
+        <h1>Let's set up your addons</h1>
+        <p class="sub">Two things and you're done. After this, checking and updating is one click.</p>
+        <ol class="steps">
+          <li class="step" id="stepKey">
+            <h2>Connect to CurseForge</h2>
+            <p>CurseForge asks every app for a free API key. Sign in at console.curseforge.com, open API keys, copy yours, and paste it here.</p>
+            <div class="body">
+              <div class="line" style="display:flex;gap:10px;width:100%"><input class="field wide secret" id="wKey" type="text" placeholder="Paste your API key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other"><button class="btn primary" id="wKeySave">Connect</button></div>
+              <span><button class="linkish" data-url="https://console.curseforge.com/">Open console.curseforge.com</button></span>
+              <span class="msg-err" id="wKeyErr"></span>
+              <span class="keyset" id="wKeyOk" hidden><svg class="i"><use href="#i-check"/></svg>Connected</span>
+            </div>
+          </li>
+          <li class="step" id="stepFolder">
+            <h2>Pick your games</h2>
+            <p>Tick the games and WoW versions you want to manage. Each WoW version gets its own addon list. You can add more later from the game menu.</p>
+            <div class="body">
+              <div class="pick" id="wPick"><span class="help">Looking for games on this PC...</span></div>
+              <div><button class="btn" id="wBrowse"><svg class="i"><use href="#i-folder"/></svg>Choose a folder myself</button></div>
+              <span class="msg-err" id="wFolderErr"></span>
+            </div>
+          </li>
+        </ol>
+        <button class="btn primary lg" id="wDone" disabled>Show my addons</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="menu" id="menu" role="menu"></div>
+<div class="menu gamemenu" id="gameMenu" role="menu"></div>
+<div class="tray-pill" id="trayPill" hidden></div>
+<dialog id="dlg"></dialog>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="tray" id="tray" hidden aria-live="polite"></div>
+
+<script nonce="__HEARTH_NONCE__">
+"use strict";
+const TOKEN = new URLSearchParams(location.search).get("t") || "__HEARTH_TOKEN__";
+if (new URLSearchParams(location.search).get("shell") === "native") document.body.classList.add("native");
+// The window around the page (WebView2) and the page talk through postMessage: the window says when
+// it's maximized or the CurseForge pane is covering the corner, and the buttons ask it to minimize and so on.
+const host = window.chrome && window.chrome.webview;
+if (host) {
+  host.addEventListener("message", e => {
+    const m = e.data || {};
+    if ("maximized" in m) { document.body.classList.toggle("win-max", !!m.maximized); document.querySelectorAll(".winbtn.max").forEach(b => b.title = m.maximized ? "Restore" : "Maximize"); }
+    if ("paneOpen" in m) document.body.classList.toggle("pane-open", !!m.paneOpen);
+  });
+  document.addEventListener("click", e => { const b = e.target.closest("[data-win]"); if (b) host.postMessage({ win: b.dataset.win }); });
+}
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const icon = (id, cls = "i") => `<svg class="${cls}"><use href="#i-${id}"/></svg>`;
+
+const S = { setup: null, addons: [], lastScan: null, online: false, view: "mine", filter: "all",
+            q: "", find: { q: "", sort: 2, index: 0, total: 0, results: [], loaded: false },
+            job: null, jobKeys: new Set(), doneKeys: new Set() };
+
+// Talking to the app's server
+async function api(path, body) {
+  const opt = { headers: { "X-Hearth-Token": TOKEN } };
+  if (body !== undefined) { opt.method = "POST"; opt.headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(body); }
+  const r = await fetch(path, opt);
+  let data = {};
+  try { data = await r.json(); } catch (e) {}
+  if (!r.ok) {
+    const err = new Error(data.error || `Request failed (${r.status})`);
+    err.auth = !!data.auth;
+    if (err.auth && path !== "/api/state") loadState().catch(() => {});   // every screen picks up the new key status
+    throw err;
+  }
+  return data;
+}
+
+// Formatting
+function n(x) { x = +x || 0; return x >= 1e6 ? (x/1e6).toFixed(x >= 1e7 ? 0 : 1) + "M" : x >= 1e3 ? Math.round(x/1e3) + "K" : String(x); }
+function ago(t) {
+  if (!t) return "";
+  const s = Math.max(0, Date.now()/1000 - t);
+  if (s < 50) return "just now";
+  if (s < 3600) return `${Math.round(s/60)} min ago`;
+  if (s < 86400) return `${Math.round(s/3600)} h ago`;
+  return `${Math.round(s/86400)} days ago`;
+}
+function day(iso) {
+  if (!iso) return "";
+  const d = new Date(iso), diff = (Date.now() - d) / 86400000;
+  if (diff < 1) return "today";
+  if (diff < 2) return "yesterday";
+  if (diff < 30) return `${Math.floor(diff)} days ago`;
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+function shortVer(name, v) {
+  if (!v) return "";
+  let s = String(v).replace(/\.zip$/i, "").trim();
+  // "Questie 1.2", "TalentsForeverBook-0.37.1", "MapUtils (...) v1.3.5-forever" -> just the version
+  const m = s.match(/^(.*?[A-Za-z].*?)[\s_-]+(v?\d[\w.+-]*)$/);
+  if (m) s = m[2];
+  if (!/\d/.test(s)) return "";   // a display name with no version number in it
+  return s.length > 28 ? s.slice(0, 27) + "…" : s;
+}
+function logoHtml(name, url) {
+  const letter = esc((String(name || "?").trim()[0] || "?").toUpperCase());
+  if (url) return `<img class="logo" src="${esc(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-letter="${letter}">`;
+  return `<div class="logo" aria-hidden="true">${letter}</div>`;
+}
+// A logo that fails to load turns into its first letter. One listener for the whole page,
+// because the page's security policy doesn't allow inline onerror handlers.
+document.addEventListener("error", e => {
+  const img = e.target;
+  if (img.tagName !== "IMG" || !img.classList.contains("logo")) return;
+  const d = document.createElement("div");
+  d.className = "logo"; d.setAttribute("aria-hidden", "true"); d.textContent = img.dataset.letter || "?";
+  img.replaceWith(d);
+}, true);
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-go]");
+  if (!b) return;
+  if (b.dataset.go === "keyfix") gotoKeyFix(); else show(b.dataset.go);
+});
+
+// Switching views
+const VIEW_NAMES = { mine: "My addons", find: "Find addons", settings: "Settings", welcome: "Get started" };
+function show(view) {
+  S.view = view;
+  $("#tbView").textContent = VIEW_NAMES[view] || "";
+  if (S.setup) $("#keyBannerWrap").hidden = !(keyState() === "rejected" && (view === "mine" || view === "find"));
+  document.body.classList.toggle("banner-on", !$("#keyBannerWrap").hidden);
+  $$(".view").forEach(v => v.classList.toggle("on", v.id === "view-" + view));
+  $$(".nav").forEach(b => b.setAttribute("aria-current", b.dataset.view === view ? "page" : "false"));
+  if (view === "find" && !S.find.loaded && S.setup?.hasKey) search(false);
+  if (view === "settings") renderSettings();
+}
+$$(".nav").forEach(b => b.addEventListener("click", () => {
+  if (!setupDone() && b.dataset.view !== "settings") return show("welcome");
+  show(b.dataset.view);
+}));
+function setupDone() { return S.setup && S.setup.hasKey && (S.setup.profiles || []).length > 0; }
+// One answer to "is the key working" that every screen uses, so they never disagree.
+function keyState() {
+  const s = S.setup;
+  if (!s || !s.hasKey) return "none";
+  return (s.key && s.key.state) || "unknown";   // comes back as unknown, ok or rejected
+}
+function renderKeyEverywhere() {
+  const st = keyState();
+  $("#navKeyDot").hidden = st !== "rejected";
+  $("#keyBannerWrap").hidden = !(st === "rejected" && (S.view === "mine" || S.view === "find"));
+  document.body.classList.toggle("banner-on", !$("#keyBannerWrap").hidden);
+  if (S.view === "settings") renderSettings();
+  if (S.view === "welcome") renderWelcome();
+}
+function gotoKeyFix() {
+  show("settings");
+  $("#keyEdit").hidden = false;
+  setTimeout(() => $("#keyInput").focus(), 50);
+}
+
+// Loading state
+function applyState(st) {
+  Object.assign(S, { setup: st.setup, addons: st.addons, lastScan: st.lastScan, online: st.online, manual: st.manual || { items: [] }, rev: st.rev });
+  renderTray();
+  renderSide();
+  renderMine();
+  renderFindHead();
+  if (S.view === "settings") renderSettings();
+}
+async function loadState() {
+  const st = await api("/api/state");
+  applyState(st);
+  return st;
+}
+function renderSide() {
+  const s = S.setup;
+  const a = s.active, em = $("#gpEmblem");
+  $("#gpLabel").textContent = a ? a.label : "No game yet";
+  $("#gpPath").textContent = a ? (a.folderOk ? pathTail(a.addonsDir) : "Folder not found") : "Add one to begin";
+  em.style.setProperty("--gc", a ? gameColor(a.color) : "#716884");
+  em.textContent = a ? glyph(a) : "+";
+  $("#gpDot").hidden = !(s.profiles || []).some(p => a && p.id !== a.id && p.updates);
+  $("#gamePick").title = a ? `${a.label}: ${a.addonsDir}` : "Add a game";
+  $("#tbGame").textContent = a ? a.label : "Blessed Hearth";
+  if (s.theme) applyTheme(s.theme);
+  // the nav follows the selected game, like "My WoW Forever Addons" or "Find ESO Addons"
+  const nm = a ? (a.flavors ? a.label : a.short) : "";
+  $("#navMineLbl").textContent = nm ? `My ${nm} Addons` : "My Addons";
+  $("#navFindLbl").textContent = nm ? `Find ${nm} Addons` : "Find Addons";
+  $("#navMineLbl").parentElement.title = $("#navMineLbl").textContent;
+  $("#navFindLbl").parentElement.title = $("#navFindLbl").textContent;
+  $("#verNote").textContent = `Version ${s.version}`;
+  const upd = S.addons.filter(a => a.canUpdate).length;
+  $("#navCount").textContent = upd || "";
+  renderKeyEverywhere();
+}
+
+// My addons
+const ORDER = { "Update available": 0, "Installed version unknown": 1, "No Forever file": 2, "Not linked": 3, "Up to date": 4, "Not checked": 5, "Ignored": 6 };
+function bucket(a) {
+  if (a.canUpdate) return "updates";
+  if (a.status === "Not linked") return "unlinked";
+  if (a.status === "No Forever file") return "other";
+  return "fine";
+}
+function renderMine() {
+  const all = S.addons, upd = all.filter(a => a.canUpdate), unl = all.filter(a => a.status === "Not linked"),
+        oth = all.filter(a => a.status === "No Forever file");
+  $("#kAll").textContent = all.length; $("#kUpd").textContent = upd.length;
+  $("#kUnl").textContent = unl.length; $("#kOth").textContent = oth.length;
+  $$("#mineSeg button").forEach(b => { if (b.dataset.f !== "all") b.hidden = !(+$(".k", b).textContent) && S.filter !== b.dataset.f; });
+
+  const h = $("#headline"), sub = $("#subline"), btn = $("#updAllBtn");
+  const busy = !!(S.job && S.job.running);
+  if (!S.setup?.active) { h.textContent = "Your addons"; sub.textContent = "Add a game from the game menu to get started."; }
+  else if (!S.setup?.folderOk) { h.textContent = "Your addons"; sub.textContent = `The ${T().label} AddOns folder wasn't found. Choose it in Settings.`; }
+  else if (!S.lastScan) { h.textContent = "Your addons"; sub.textContent = busy ? "Reading your AddOns folder..." : ""; }
+  else if (keyState() === "rejected") { h.textContent = "Can't check for updates right now"; sub.textContent = "CurseForge is rejecting your API key. Versions below are from your last successful check" + (S.lastScan && S.online ? ` (${ago(S.lastScan)}).` : "."); }
+  else if (!S.online) { h.textContent = `${all.length} addon${all.length === 1 ? "" : "s"} installed`; sub.textContent = "Add your CurseForge API key in Settings to check for updates."; }
+  else if (upd.length) {
+    h.textContent = `${upd.length} addon${upd.length === 1 ? " has an update" : "s have updates"}`;
+    sub.textContent = `Checked ${ago(S.lastScan)}. ${all.length} addons in your ${T().label} AddOns folder.`;
+  } else if (all.length) {
+    h.textContent = "Everything is up to date";
+    sub.textContent = `Checked ${ago(S.lastScan)}. ${all.length} addons in your ${T().label} AddOns folder.`;
+  } else { h.textContent = "No addons yet"; sub.textContent = "Your AddOns folder is empty."; }
+  renderSigil(all, upd, busy);
+  const auto = upd.filter(a => a.downloadable !== false);
+  const web = upd.filter(a => a.downloadable === false && !["waiting", "installing"].includes(manualFor(a)?.status));
+  btn.hidden = !auto.length || keyState() === "rejected";
+  $("span", btn).textContent = auto.length > 1 ? `Update all ${auto.length}` : "Update";
+  const wb = $("#webAllBtn");
+  wb.hidden = !web.length || keyState() === "rejected";
+  $("span", wb).textContent = web.length > 1 ? `Get ${web.length} on CurseForge` : "Get 1 on CurseForge";
+  btn.disabled = busy; $("#checkBtn").disabled = busy || !S.setup?.folderOk;
+
+  const q = S.q.trim().toLowerCase();
+  let list = all.filter(a => S.filter === "all" || bucket(a) === S.filter);
+  if (q) list = list.filter(a => a.name.toLowerCase().includes(q) || a.folders.some(f => f.toLowerCase().includes(q)) || (a.author || "").toLowerCase().includes(q));
+  list.sort((x, y) => (ORDER[x.status] ?? 9) - (ORDER[y.status] ?? 9) || x.name.localeCompare(y.name));
+
+  const ul = $("#mineList");
+  if (!all.length && S.lastScan) {
+    ul.innerHTML = `<li class="empty"><h2>Nothing installed yet</h2><p>Find addons made for ${esc(T().short)} and install them in one click.</p><button class="btn primary" data-go="find">Find addons</button></li>`;
+    return;
+  }
+  S.visible = list.map(a => a.key);
+  if (!list.length) { ul.innerHTML = all.length ? `<li class="empty"><p>No addons match.</p></li>` : ""; renderInspector(); return; }
+  if (!S.sel || !S.visible.includes(S.sel)) S.sel = S.visible[0];
+  ul.innerHTML = list.map(rowHtml).join("");
+  updateRowProgress();
+  renderInspector();
+}
+
+// The rune ring in the header card: the update count in the theme's accent, a green check when
+// everything is current, orange when the key needs attention. It spins faster while the app works.
+let lastSigil = "";
+function renderSigil(all, upd, busy) {
+  const sig = $("#sigil"); if (!sig) return;
+  let st = "idle", num = "", label = "";
+  if (keyState() === "rejected") { st = "warn"; num = "!"; label = "key needs attention"; }
+  else if (!S.lastScan) { num = busy ? "" : "-"; label = busy ? "reading addons" : "not checked yet"; }
+  else if (!S.online) { num = String(all.length); label = all.length === 1 ? "addon installed" : "addons installed"; }
+  else if (upd.length) { st = "epic"; num = String(upd.length); label = upd.length === 1 ? "update ready" : "updates ready"; }
+  else { st = "clear"; label = "all up to date"; }
+  sig.className = `sigil s-${st}${busy ? " working" : ""}`;
+  $("#sigilNum").innerHTML = st === "clear" ? icon("check") : esc(num);
+  $("#sigilLabel").textContent = label;
+  const sigKey = st + num;
+  if (lastSigil && sigKey !== lastSigil) { sig.classList.remove("pulse"); void sig.offsetWidth; sig.classList.add("pulse"); }
+  lastSigil = sigKey;
+}
+const QUALITY = { "Update available": "epic", "Installed version unknown": "epic", "Up to date": "common",
+                  "No Forever file": "legendary", "Not linked": "poor", "Ignored": "poor" };
+
+function rowHtml(a) {
+  const busy = S.jobKeys.has(a.key), done = S.doneKeys.has(a.key);
+  const local = shortVer(a.name, a.local), latest = shortVer(a.name, a.latest);
+  let vers = "", state = "";
+  const more = `<button class="icon-btn" data-menu="${esc(a.key)}" aria-label="More for ${esc(a.name)}">${icon("more")}</button>`;
+  switch (a.status) {
+    case "Update available":
+    case "Installed version unknown":
+      vers = a.status === "Update available"
+        ? `${esc(local)}<span class="arrow">→</span><span class="to">${esc(latest)}</span>`
+        : `<span title="Installed by hand, so the exact version is unknown">${esc(local || "unknown")}</span><span class="arrow">→</span><span class="to">${esc(latest)}</span>`;
+      if (a.downloadable === false) {
+        const m = manualFor(a);
+        state = m && (m.status === "waiting" || m.status === "installing")
+          ? `<span class="st wait"><span class="spin"></span>${m.status === "installing" ? "Installing" : "Waiting for download"}</span>`
+          : `<button class="btn web sm" data-manual="${esc(a.key)}" title="The author only allows downloads from the CurseForge website. The app opens the page in a download window and installs the file as soon as it arrives.">${icon("ext")}Get on CurseForge</button>`;
+      } else {
+        state = `<button class="btn primary sm" data-update="${esc(a.key)}" ${a.status !== "Update available" ? 'title="Installs the latest file so the version is tracked from now on"' : ""} ${S.job?.running ? "disabled" : ""}>${busy ? "Updating" : "Update"}</button>`;
+      }
+      break;
+    case "Up to date":
+      vers = `<span class="now">${esc(local || latest || "Latest")}</span>`;
+      state = `<span class="st ok">${icon("check")}Up to date</span>`;
+      break;
+    case "No Forever file":
+      vers = `<span class="now">${esc(local)}</span>`;
+      if (a.held) {
+        const ch = a.held.channel.toLowerCase();
+        state = `<button class="btn beta sm" data-beta="${esc(a.key)}" data-ch="${a.held.channel === "Alpha" ? 3 : 2}" title="Only ${ch} versions exist for ${esc(T().short)} (newest: ${esc(a.held.version)}). This turns on ${ch} updates for just this addon.">${icon("flask")}Get ${ch} ${esc(shortVer(a.name, a.held.version))}</button>`;
+      } else {
+        state = `<span class="st bad" title="This project has no file tagged for ${esc(T().label)} yet">${icon("alert")}No ${esc(T().short)} version yet</span>`;
+      }
+      break;
+    case "Not linked":
+      vers = `<span class="now">${esc(local)}</span>`;
+      state = `<button class="btn sm" data-link="${esc(a.key)}">${icon("link")}Link</button>`;
+      break;
+    case "Ignored":
+      vers = `<span class="now">${esc(local)}</span>`;
+      state = `<span class="st">${icon("pause")}Skipping updates</span>`;
+      break;
+    default:
+      vers = `<span class="now">${esc(local)}</span>`;
+      state = `<span class="st">Not checked</span>`;
+  }
+  const chip = (a.folders.length > 1 ? `<span class="chip" title="${esc(a.folders.join(", "))}">${a.folders.length} folders</span>` : "")
+    + (a.channel ? `<span class="chip tag-beta" title="This addon follows ${a.channel === 3 ? "alpha" : "beta"} versions">${a.channel === 3 ? "Alpha" : "Beta"}</span>` : "");
+  const meta = a.status === "Not linked" ? `${a.folders[0]} folder, not matched to a CurseForge project yet` : (a.author ? `by ${a.author}` : a.folders[0]);
+  const rel = a.latestDate || a.installedDate;
+  return `<li class="row q-${QUALITY[a.status] || "common"}${busy ? " busy" : ""}${done ? " done" : ""}${a.key === S.sel ? " sel" : ""}" data-key="${esc(a.key)}">
+    ${logoHtml(a.name, a.logo)}
+    <div><div class="name"><span>${esc(a.name)}</span>${chip}</div><div class="meta">${esc(meta)}</div></div>
+    <div class="about">${esc(a.summary || "")}</div>
+    <div class="vers">${vers}</div>
+    <div class="rel" title="${rel ? esc(new Date(rel).toLocaleString()) : ""}">${rel ? esc(day(rel)) : ""}</div>
+    <div class="state">${state}${more}</div>
+    ${busy ? `<div class="rowbar indet"><i></i></div>` : ""}
+  </li>`;
+}
+
+function updateRowProgress() {
+  const j = S.job;
+  $$("#mineList .rowbar").forEach(bar => {
+    if (j && j.running && j.frac != null && S.jobKeys.size === 1) { bar.classList.remove("indet"); $("i", bar).style.width = (j.frac * 100).toFixed(0) + "%"; }
+    else bar.classList.add("indet");
+  });
+}
+
+$("#mineSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  S.filter = b.dataset.f;
+  $$("#mineSeg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  renderMine();
+});
+// The filter bar only gets a background once it sticks to the top while you scroll.
+$("#view-mine").addEventListener("scroll", e => {
+  const bar = $("#view-mine .toolbar"), hero = $("#view-mine .hero");
+  bar.classList.toggle("stuck", e.target.scrollTop > hero.offsetTop + hero.offsetHeight - 10);
+}, { passive: true });
+$("#mineFilter").addEventListener("input", e => { S.q = e.target.value; renderMine(); });
+$("#checkBtn").addEventListener("click", () => runJob("/api/scan", {}, []));
+$("#webAllBtn").addEventListener("click", () => {
+  const keys = S.addons.filter(a => a.canUpdate && a.downloadable === false && !["waiting", "installing"].includes(manualFor(a)?.status)).map(a => a.key);
+  startManual({ keys });
+});
+$("#updAllBtn").addEventListener("click", () => {
+  const keys = S.addons.filter(a => a.canUpdate && a.downloadable !== false).map(a => a.key);
+  runJob("/api/update", { all: true }, keys);
+});
+$("#mineList").addEventListener("click", e => {
+  if (addonAction(e)) return;
+  const row = e.target.closest(".row[data-key]");
+  if (row) selectAddon(row.dataset.key);
+});
+$("#inspector").addEventListener("click", e => { addonAction(e) || inspectorExtras(e); });
+function addonAction(e) {
+  const f = e.target.closest("[data-folder]");
+  if (f) { api("/api/open", { folder: f.dataset.folder }).catch(err => toast(err.message, "err")); return true; }
+  const u = e.target.closest("[data-update]"), l = e.target.closest("[data-link]"), m = e.target.closest("[data-menu]");
+  if (!(u || l || m || e.target.closest("[data-beta]") || e.target.closest("[data-manual]"))) return false;
+  if ($("#dlg").open && e.target.closest("#dlg")) $("#dlg").close();
+  addonActionInner(e, u, l, m);
+  return true;
+}
+function addonActionInner(e, u, l, m) {
+  const bt = e.target.closest("[data-beta]");
+  if (bt) return runJob("/api/channel", { key: bt.dataset.beta, channel: +bt.dataset.ch }, [bt.dataset.beta]);
+  const w = e.target.closest("[data-manual]");
+  if (w) return startManual({ keys: [w.dataset.manual] });
+  if (u) runJob("/api/update", { keys: [u.dataset.update] }, [u.dataset.update]);
+  else if (l) openLink(byKey(l.dataset.link));
+  else if (m) openMenu(m, byKey(m.dataset.menu));
+}
+function inspectorExtras(e) {
+  const shot = e.target.closest("[data-shot]");
+  if (shot) dialog(`<img src="${esc(shot.dataset.shot)}" alt="">`, d => d.classList.add("wide"));
+}
+$("#dlg").addEventListener("close", () => $("#dlg").classList.remove("wide"));
+
+function selectAddon(key) {
+  S.sel = key;
+  $$("#mineList .row").forEach(r => r.classList.toggle("sel", r.dataset.key === key));
+  if (getComputedStyle($("#inspector")).display !== "none") renderInspector();
+  else dialog(`<div class="ins-dlg"></div><div class="dlg-foot"><button class="btn" data-close>Close</button></div>`, d => {
+    const box = $(".ins-dlg", d);
+    box.addEventListener("click", ev => { addonAction(ev) || inspectorExtras(ev); });
+    renderInspector(box);
+  });
+}
+document.addEventListener("keydown", e => {   // up/down arrows move through the list
+  if (S.view !== "mine" || $("#dlg").open || /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+  const vis = S.visible || [], i = vis.indexOf(S.sel);
+  const next = vis[Math.max(0, Math.min(vis.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)))];
+  if (next && next !== S.sel) {
+    e.preventDefault(); selectAddon(next);
+    $(`#mineList .row[data-key="${CSS.escape(next)}"]`)?.scrollIntoView({ block: "nearest" });
+  }
+});
+
+function inspectorHtml(a) {
+  const t = T(), local = shortVer(a.name, a.local) || a.tocVersion, latest = shortVer(a.name, a.latest);
+  const q = QUALITY[a.status] || "common", cover = a.screens && a.screens[0];
+  const m = manualFor(a);
+  let status, primary = "";
+  switch (a.status) {
+    case "Update available":
+      status = ["epic", "down", `Update ready: ${local || "your version"} to ${latest}`]; break;
+    case "Installed version unknown":
+      status = ["epic", "down", `Installed by hand, so the exact version isn't known. Updating once to ${latest} tracks it from then on.`]; break;
+    case "Up to date":
+      status = ["ok", "check", `You have the newest ${t.short} version.`]; break;
+    case "No Forever file":
+      status = a.held ? ["warn", "flask", `Only ${a.held.channel.toLowerCase()} versions exist for ${t.short}. The newest is ${shortVer(a.name, a.held.version)}.`]
+                      : ["warn", "alert", `This project has no file for ${t.label} on CurseForge yet.`]; break;
+    case "Not linked":
+      status = ["poor", "link", "Not matched to a CurseForge project yet. Link it once and it gets updates like the rest."]; break;
+    case "Ignored":
+      status = ["poor", "pause", "Updates are skipped for this addon."]; break;
+    default:
+      status = ["poor", "clock", "Not checked yet."];
+  }
+  if (a.canUpdate && a.downloadable === false) {
+    primary = m && (m.status === "waiting" || m.status === "installing")
+      ? `<span class="st wait"><span class="spin"></span>${m.status === "installing" ? "Installing" : "Waiting for download"}</span>`
+      : `<button class="btn web" data-manual="${esc(a.key)}">${icon("ext")}Get ${esc(latest)} on CurseForge</button>`;
+  } else if (a.canUpdate) {
+    primary = `<button class="btn primary" data-update="${esc(a.key)}" ${S.job?.running ? "disabled" : ""}>${icon("down")}Update to ${esc(latest)}</button>`;
+  } else if (a.held && a.status === "No Forever file") {
+    primary = `<button class="btn beta" data-beta="${esc(a.key)}" data-ch="${a.held.channel === "Alpha" ? 3 : 2}">${icon("flask")}Get ${esc(a.held.channel.toLowerCase())} ${esc(shortVer(a.name, a.held.version))}</button>`;
+  } else if (a.status === "Not linked") {
+    primary = `<button class="btn primary" data-link="${esc(a.key)}">${icon("link")}Link to a CurseForge project</button>`;
+  }
+  const actions = primary
+    + (a.website ? `<button class="btn ghost" data-url="${esc(a.website)}">${icon("ext")}CurseForge page</button>` : "")
+    + `<button class="btn ghost" data-folder="${esc(a.folders[0])}">${icon("folder")}Show in Explorer</button>`
+    + `<button class="icon-btn" data-menu="${esc(a.key)}" aria-label="More for ${esc(a.name)}">${icon("more")}</button>`;
+  const fact = (label, value, sub, wide) => value ? `<div class="${wide ? "wide" : ""}"><dt>${label}</dt><dd>${value}${sub ? `<small>${sub}</small>` : ""}</dd></div>` : "";
+  const facts = a.modId ? [
+      fact("Installed", esc(local || "Unknown"), a.installedDate ? `released ${esc(day(a.installedDate))}` : (a.installedFile ? "" : "installed by hand")),
+      fact(`Latest for ${esc(t.short)}`, esc(latest || (a.held ? shortVer(a.name, a.held.version) : "None yet")),
+           a.latestDate ? `${esc(day(a.latestDate))}${a.latestChannel && a.latestChannel !== "Release" ? `, ${esc(a.latestChannel.toLowerCase())}` : ""}` : (a.held ? esc(a.held.channel.toLowerCase()) + " only" : "")),
+      fact("Downloads", a.downloads ? esc(n(a.downloads)) : "", ""),
+      fact("Update channel", a.channel ? (a.channel === 3 ? "Alpha" : "Beta") : "Release", a.channel ? "just this addon" : "same as Settings"),
+      a.flavorNames && a.flavorNames.length ? `<div class="wide"><dt>Made for</dt><dd>${a.flavorNames.map(f => `<span class="flv ${f === S.setup.active?.flavorName ? "on" : ""}">${esc(f.replace(/^(world of warcraft|wow)[:\s-]*/i, ""))}</span>`).join("")}</dd></div>` : "",
+      fact(a.folders.length > 1 ? `${a.folders.length} folders` : "Folder", a.folders.map(esc).join(", "), "", true),
+    ] : [
+      fact("Version", esc(a.tocVersion || local || "Not stated"), "from the addon's own files"),
+      fact("Interface", esc(a.interface || ""), "game version it was written for"),
+      fact(a.folders.length > 1 ? `${a.folders.length} folders` : "Folder", a.folders.map(esc).join(", "), "", true),
+    ];
+  const logId = a.latestId || a.installedId;
+  const shots = (a.screens || []).slice(0, 3);
+  return `<div class="ins-cover" ${cover ? `style="--cover: url('${esc(cover)}')"` : ""}></div>
+    <div class="ins-body">
+      <div class="ins-head q-${q}">${logoHtml(a.name, a.logo)}<div style="min-width:0"><h2>${esc(a.name)}</h2><div class="meta">${esc(a.author ? "by " + a.author : a.tocTitle || "")}</div></div></div>
+      <div class="ins-status ${status[0]}">${icon(status[1])}<span>${esc(status[2])}</span></div>
+      <div class="ins-actions">${actions}</div>
+      ${a.summary ? `<p class="ins-summary">${esc(a.summary)}</p>` : ""}
+      <dl class="ins-facts">${facts.join("")}</dl>
+      ${a.modId && logId ? `<section class="ins-sec"><h3>${a.latestId ? `What's new in ${esc(latest || "the latest version")}` : "Release notes"}</h3><div class="ins-log dim" data-log="${a.modId}:${logId}">Loading release notes...</div></section>` : ""}
+      ${shots.length ? `<section class="ins-sec"><h3>Screenshots</h3><div class="ins-shots">${shots.map(u => `<button data-shot="${esc(u)}" aria-label="View screenshot"><img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`).join("")}</div></section>` : ""}
+    </div>`;
+}
+function renderInspector(target) {
+  const el = target || $("#inspector");
+  if (!target && getComputedStyle(el).display === "none") return;
+  const a = byKey(S.sel);
+  if (!a) {
+    el.innerHTML = `<div class="ins-empty">${S.addons.length ? "Pick an addon to see its details." : "Your addons show up here."}</div>`;
+    return;
+  }
+  // don't redraw (and flicker) if nothing about this addon changed
+  const sig = JSON.stringify(a) + (S.job?.running ? "1" : "0") + JSON.stringify(manualFor(a) || {});
+  if (!target && el.dataset.sig === sig) return;
+  el.dataset.sig = sig;
+  el.innerHTML = inspectorHtml(a);
+  const box = $("[data-log]", el);
+  if (box) loadChangelog(box);
+}
+S.logs = {};
+async function loadChangelog(box) {
+  const [modId, fileId] = box.dataset.log.split(":");
+  const show = text => { box.textContent = text || "The author didn't write release notes for this version."; box.classList.toggle("dim", !text); };
+  if (box.dataset.log in S.logs) return show(S.logs[box.dataset.log]);
+  try {
+    const r = await api(`/api/changelog?modId=${modId}&fileId=${fileId}`);
+    S.logs[box.dataset.log] = r.text;
+    show(r.text);
+  } catch (err) { box.textContent = "Couldn't load the release notes."; }
+}
+const byKey = k => S.addons.find(a => a.key === k);
+
+// The ... menu on each addon
+function openMenu(anchor, a) {
+  const menu = $("#menu");
+  const items = [];
+  if (a.website) items.push(["ext", "Open on CurseForge", () => openUrl(a.website)]);
+  items.push(["folder", "Show in Explorer", () => api("/api/open", { folder: a.folders[0] }).catch(err => toast(err.message, "err"))]);
+  items.push("-");
+  items.push(["link", a.modId ? "Link to a different project" : "Link to a CurseForge project", () => openLink(a)]);
+  if (a.modId) {
+    items.push(["unlink", "Unlink", () => runJob("/api/unlink", { key: a.key }, [])]);
+    items.push(a.ignored ? ["play", "Resume updates", () => runJob("/api/ignore", { key: a.key, ignored: false }, [])]
+                         : ["pause", "Skip updates for this addon", () => runJob("/api/ignore", { key: a.key, ignored: true }, [])]);
+    items.push(a.channel ? ["flask", "Back to release versions", () => runJob("/api/channel", { key: a.key, channel: null }, [a.key])]
+                         : ["flask", "Get beta versions for this addon", () => runJob("/api/channel", { key: a.key, channel: 2 }, [a.key])]);
+  }
+  items.push("-");
+  items.push(["trash", "Remove...", () => confirmRemove(a), "danger"]);
+  menu.innerHTML = items.map((it, i) => it === "-" ? "<hr>" : `<button role="menuitem" class="${it[3] || ""}" data-i="${i}">${icon(it[0])}${esc(it[1])}</button>`).join("");
+  menu._items = items;
+  menu.classList.add("on");
+  const r = anchor.getBoundingClientRect(), mw = menu.offsetWidth, mh = menu.offsetHeight;
+  menu.style.left = Math.max(8, Math.min(r.right - mw, innerWidth - mw - 8)) + "px";
+  menu.style.top = (r.bottom + 6 + mh > innerHeight ? r.top - mh - 6 : r.bottom + 6) + "px";
+  $("button", menu)?.focus();
+}
+function closeMenu() { $("#menu").classList.remove("on"); }
+$("#menu").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const it = $("#menu")._items[+b.dataset.i]; closeMenu(); it[2]();
+});
+document.addEventListener("click", e => { if (!e.target.closest("#menu") && !e.target.closest("[data-menu]")) closeMenu(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeMenu();
+  if ((e.ctrlKey && e.key.toLowerCase() === "f") || (e.key === "/" && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))) {
+    e.preventDefault();
+    (S.view === "find" ? $("#findInput") : $("#mineFilter")).focus();
+  }
+});
+
+// Background jobs
+let pollTimer = null;
+async function runJob(path, body, keys) {
+  try {
+    const j = await api(path, body);
+    S.job = j; S.jobKeys = new Set(keys); S.doneKeys = new Set();
+    jobUi(); renderMine(); poll();
+  } catch (err) { toast(err.message, "err"); }
+}
+function poll() {
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(async () => {
+    let j;
+    try { j = await api("/api/job"); } catch (e) { return poll(); }
+    S.job = j; jobUi(); updateRowProgress();
+    if (j.running) return poll();
+    await jobFinished(j);
+  }, 220);
+}
+let jobToast = null;
+function jobUi() {
+  const j = S.job, bar = $("#jobbar");
+  const running = !!(j && j.running);
+  bar.classList.toggle("on", running);
+  bar.classList.toggle("indet", running && j.frac == null);
+  $("#sigil")?.classList.toggle("working", running);
+  $(".fill", bar).style.width = running && j.frac != null ? (j.frac * 100) + "%" : "";
+  if (running) {
+    if (!jobToast) { jobToast = document.createElement("div"); jobToast.className = "toast job"; $("#toasts").appendChild(jobToast); }
+    jobToast.innerHTML = `<span class="spin"></span><span>${esc(j.message || j.label)}</span>`;
+  } else if (jobToast) { jobToast.remove(); jobToast = null; }
+  $("#checkBtn").disabled = running || !S.setup?.folderOk;
+  $("#updAllBtn").disabled = running;
+  $$("[data-update], [data-install]").forEach(b => b.disabled = running);
+}
+async function jobFinished(j) {
+  const keys = S.jobKeys;
+  S.jobKeys = new Set();
+  await loadState().catch(() => {});
+  if (j.error) { if (keyState() !== "rejected") toast(j.error, "err"); return; }
+  const r = j.result || {};
+  if (r.kind === "manual") {   // the tray already announced it
+    if (r.deps?.length) offerDeps(r.deps);
+    refreshFindStates();
+  } else if (r.kind === "update" || r.kind === "install") {
+    if (r.kind === "update") { S.doneKeys = new Set([...keys].filter(k => byKey(k)?.status === "Up to date")); renderMine(); setTimeout(() => { S.doneKeys = new Set(); }, 1700); }
+    if (r.ok?.length) toast(r.kind === "update" ? `Updated ${listNames(r.ok)}` : `Installed ${listNames(r.ok)}`);
+    if (r.failed?.length) showFailures(r.failed, r.kind);
+    else if (r.deps?.length) offerDeps(r.deps);
+    if (r.kind === "install") refreshFindStates();
+  } else if (r.kind === "uninstall") { toast(`Removed ${listNames(r.ok)}`); refreshFindStates(); }
+  else if (r.kind === "link") toast(r.target ? `Linked ${r.name} to ${r.target}` : `Linked ${r.name}`);
+  else if (r.kind === "unlink") toast(`Unlinked ${r.name}`);
+  else if (r.kind === "channel") { const a = S.addons.find(x => x.name === r.name); toast(a && a.channel ? `${r.name} now gets ${a.channel === 3 ? "alpha" : "beta"} versions` : `${r.name} is back on release versions`); }
+  else if (r.kind === "ignore") toast(S.addons.find(a => a.name === r.name)?.ignored ? `Skipping updates for ${r.name}` : `Updates resumed for ${r.name}`);
+}
+const listNames = a => a.length <= 2 ? a.join(" and ") : `${a.length} addons`;
+
+// Toasts
+function toast(msg, kind = "") {
+  const box = $("#toasts");
+  $$(".toast:not(.job)", box).slice(0, -1).forEach(x => x.remove());   // keep at most two on screen
+  const t = document.createElement("div");
+  t.className = "toast " + kind; t.setAttribute("role", kind === "err" ? "alert" : "status");
+  t.innerHTML = icon(kind === "err" ? "alert" : "check") + `<span>${esc(msg)}</span>`;
+  box.insertBefore(t, box.querySelector(".job"));
+  setTimeout(() => t.remove(), kind === "err" ? 7000 : 2600);
+}
+
+// Dialogs
+function dialog(html, onOpen) {
+  const d = $("#dlg"); d.innerHTML = html; d.showModal(); onOpen && onOpen(d);
+  return d;
+}
+$("#dlg").addEventListener("click", e => { if (e.target.id === "dlg" || e.target.closest("[data-close]")) $("#dlg").close(); });
+
+function confirmRemove(a) {
+  const bk = S.setup.keepBackups;
+  dialog(`<div class="dlg-head"><h2>Remove ${esc(a.name)}?</h2>
+    <p>${a.folders.length > 1 ? `These ${a.folders.length} folders` : "This folder"} will be taken out of your AddOns folder: ${esc(a.folders.join(", "))}.
+    ${bk ? "A copy is kept in AddOns_Backups in case you change your mind." : "Backups are off, so this can't be undone."}</p></div>
+    <div class="dlg-foot"><button class="btn ghost" data-close>Cancel</button><button class="btn danger" id="dlgOk">Remove</button></div>`,
+    d => $("#dlgOk", d).addEventListener("click", () => { d.close(); runJob("/api/uninstall", { keys: [a.key] }, [a.key]); }));
+}
+
+function showFailures(failed, kind) {
+  const web = failed.filter(f => f.blocked), other = failed.filter(f => !f.blocked);
+  if (web.length) {
+    const verb = kind === "update" ? "update" : "install";
+    return dialog(`<div class="dlg-head"><h2>${web.length === 1 ? `${esc(web[0].name)} needs a website download` : `${web.length} addons need a website download`}</h2>
+      <p>${web.length === 1 ? "Its author only allows" : "Their authors only allow"} downloads from the CurseForge website. Nothing was changed, so ${web.length === 1 ? "it's" : "they're"} still on the version you had.
+      Click Download and the app opens each file's page on curseforge.com in a small download window, then installs it automatically as soon as it arrives. The window closes itself when they're all done.</p></div>
+      <div class="dlg-body"><ul class="dlg-list">${web.map(f => `<li><b>${esc(f.name)}</b></li>`).join("")}${other.map(f => `<li><b>${esc(f.name)}</b><small>${esc(f.error)}</small></li>`).join("")}</ul></div>
+      <div class="dlg-foot"><button class="btn ghost" data-close>Not now</button><button class="btn primary" id="dlgOk">${icon("ext")}Download ${web.length === 1 ? "it" : `all ${web.length}`} on CurseForge</button></div>`,
+      d => $("#dlgOk", d).addEventListener("click", () => {
+        d.close();
+        startManual({ keys: web.filter(f => f.key).map(f => f.key), modIds: web.filter(f => !f.key && f.modId).map(f => f.modId) });
+      }));
+  }
+  dialog(`<div class="dlg-head"><h2>${failed.length === 1 ? `${esc(failed[0].name)} wasn't ${kind === "update" ? "updated" : "installed"}` : `${failed.length} addons weren't ${kind === "update" ? "updated" : "installed"}`}</h2>
+    <p>Usually this is an author who only allows downloads through the CurseForge website. Download those from their page instead.</p></div>
+    <div class="dlg-body"><ul class="dlg-list">${failed.map(f => `<li><b>${esc(f.name)}</b><small>${esc(f.error)}</small>${f.website ? `<button class="linkish" data-url="${esc(f.website)}" style="margin-top:6px">Open download page</button>` : ""}</li>`).join("")}</ul></div>
+    <div class="dlg-foot"><button class="btn" data-close>Close</button></div>`);
+}
+
+// Website downloads
+function manualFor(a) {
+  const items = (S.manual && S.manual.items) || [];
+  return items.find(m => (a.key && m.key === a.key) || (a.modId && m.modId === a.modId));
+}
+async function startManual(body) {
+  try {
+    S.manual = await api("/api/manual/start", body);
+    S.trayOpen = true;
+    renderTray(); renderMine();
+    toast("Opening CurseForge. Each addon installs as soon as it downloads.");
+    pollManual();
+  } catch (err) { toast(err.message, "err"); }
+}
+let manualTimer = null;
+function pollManual() {
+  clearTimeout(manualTimer);
+  manualTimer = setTimeout(async () => {
+    try {
+      const prev = new Map((S.manual.items || []).map(m => [m.fileId, m.status]));
+      S.manual = await api("/api/manual");
+      const j = await api("/api/job");
+      if (j.running && !(S.job && S.job.running)) { S.job = j; S.jobKeys = new Set(); jobUi(); poll(); }
+      // An install can start and finish between two checks, so act on the tray's own status change.
+      const finished = S.manual.items.filter(m => prev.has(m.fileId) && prev.get(m.fileId) !== m.status && (m.status === "installed" || m.status === "failed"));
+      if (finished.length) {
+        await loadState();
+        finished.forEach(m => m.status === "installed" ? toast(`Installed ${m.name}`) : toast(`${m.name}: ${m.error}`, "err"));
+        if (!S.manual.items.some(m => m.status === "waiting" || m.status === "installing")
+            && !S.manual.items.some(m => m.status === "failed")) setTimeout(() => {
+          if (!S.manual.items.some(m => m.status === "waiting" || m.status === "installing")) { S.trayOpen = false; renderTray(); }
+        }, 4000);
+        refreshFindStates();
+      } else if (S.manual.items.some(m => prev.get(m.fileId) !== m.status)) { renderTray(); renderMine(); }
+    } catch (e) {}
+    if ((S.manual.items || []).some(m => m.status === "waiting" || m.status === "installing")) pollManual();
+    else manualTimer = null;
+  }, 1500);
+}
+function renderTray() {
+  const tray = $("#tray"), items = (S.manual && S.manual.items) || [];
+  const pill = $("#trayPill"), open = S.trayOpen !== false;
+  document.body.classList.toggle("tray-on", !!items.length && open);
+  if (!items.length) { tray.hidden = true; pill.hidden = true; return; }
+  if (!open) {
+    const busy = items.filter(m => m.status === "waiting" || m.status === "installing").length;
+    const bad = items.filter(m => m.status === "failed" || m.status === "expired").length;
+    const ok = items.filter(m => m.status === "installed").length;
+    const ico = busy ? `<span class="spin"></span>` : bad ? `<span class="bad">${icon("alert")}</span>` : `<span class="ok">${icon("check")}</span>`;
+    const sum = busy ? `${busy} waiting` : bad ? `${bad} need${bad === 1 ? "s" : ""} attention` : `${ok} installed`;
+    pill.innerHTML = `<button id="pillOpen" title="Show website downloads">${ico}Website downloads <small>${sum}</small></button>`
+      + (busy ? "" : `<button class="pill-x" id="pillClear" aria-label="Clear website downloads" title="Clear">${icon("x")}</button>`);
+    tray.hidden = true; pill.hidden = false; return;
+  }
+  pill.hidden = true;
+  const waiting = items.filter(m => m.status === "waiting" || m.status === "installing").length;
+  const row = m => {
+    let ico, cls = "", sub, acts = "";
+    if (m.status === "waiting") { ico = `<span class="spin"></span>`; sub = `Waiting for ${m.fileName} in your Downloads folder`;
+      acts = `<button class="linkish" data-reopen="${m.fileId}">Open the page again</button><button class="linkish" data-pick="${m.fileId}">Choose the file myself</button>`; }
+    else if (m.status === "installing") { ico = `<span class="spin"></span>`; sub = "Installing"; }
+    else if (m.status === "installed") { ico = icon("check"); cls = "ok"; sub = `Installed ${m.version}`; }
+    else if (m.status === "expired") { ico = icon("clock"); cls = "bad"; sub = "Stopped waiting after 45 minutes";
+      acts = `<button class="linkish" data-pick="${m.fileId}">Choose the file myself</button>`; }
+    else { ico = icon("alert"); cls = "bad"; sub = m.error || "Couldn't install that file";
+      acts = `<button class="linkish" data-reopen="${m.fileId}">Download it again</button><button class="linkish" data-pick="${m.fileId}">Choose the file myself</button>`; }
+    return `<li class="${cls}"><span class="ico">${ico}</span><div><div class="t-name">${esc(m.name)}</div><div class="t-sub">${esc(sub)}</div>${acts ? `<div class="t-acts">${acts}</div>` : ""}</div></li>`;
+  };
+  tray.innerHTML = `<div class="tray-head"><b>Website downloads</b><button class="icon-btn" id="trayClose" aria-label="Close" title="Close (it stays in the corner)">${icon("x")}</button></div>
+    ${waiting ? `<div class="tray-note">${S.manual.mode === "pane"
+        ? "The CurseForge page is open in the pane on the right. Each file installs on its own as soon as it downloads."
+        : S.manual.mode === "browser"
+        ? `Watching ${esc(S.manual.folder || "your Downloads folder")}. Click Download on each CurseForge page if it doesn't start on its own.`
+        : "The pages are open in a CurseForge download window. Files save and install on their own. If a page asks you to verify you're human, or a download doesn't start, use the Download button on that page."}</div>` : ""}
+    <ul class="tray-list">${items.map(row).join("")}</ul>
+    ${items.some(m => m.status === "installed" || m.status === "expired") ? `<div class="tray-foot"><button class="btn sm ghost" id="trayClear">Clear finished</button></div>` : ""}`;
+  tray.hidden = false;
+}
+$("#trayPill").addEventListener("click", async e => {
+  if (e.target.closest("#pillClear")) { S.manual = await api("/api/manual/clear", {}); renderTray(); return; }
+  if (e.target.closest("#pillOpen")) { S.trayOpen = true; renderTray(); }
+});
+$("#tray").addEventListener("click", async e => {
+  if (e.target.closest("#trayClose")) { S.trayOpen = false; renderTray(); return; }
+  if (e.target.closest("#trayClear")) { S.manual = await api("/api/manual/clear", {}); renderTray(); return; }
+  const ro = e.target.closest("[data-reopen]");
+  if (ro) { api("/api/manual/reopen", { fileId: +ro.dataset.reopen }).then(r => { S.manual = r; renderTray(); pollManual(); }).catch(err => toast(err.message, "err")); return; }
+  const pk = e.target.closest("[data-pick]");
+  if (pk) { try { S.manual = await api("/api/manual/pick", { fileId: +pk.dataset.pick }); renderTray(); pollManual(); } catch (err) { toast(err.message, "err"); } }
+});
+
+function offerDeps(deps) {
+  dialog(`<div class="dlg-head"><h2>Install the libraries it needs?</h2>
+    <p>${deps.length === 1 ? "This addon needs another addon to work:" : "This addon needs these to work:"}</p></div>
+    <div class="dlg-body"><ul class="dlg-list">${deps.map(d => `<li>${esc(d.name)}</li>`).join("")}</ul></div>
+    <div class="dlg-foot"><button class="btn ghost" data-close>Not now</button><button class="btn primary" id="dlgOk">Install ${deps.length === 1 ? "it" : "them"}</button></div>`,
+    d => $("#dlgOk", d).addEventListener("click", () => { d.close(); runJob("/api/install", { modIds: deps.map(x => x.id) }, []); }));
+}
+
+function openLink(a) {
+  let sel = null, results = [];
+  const d = dialog(`<div class="dlg-head"><h2>Link ${esc(a.name)}</h2>
+    <p>Pick the CurseForge project ${a.folders.length > 1 ? "these folders" : "this folder"} came from (${esc(a.folders.join(", "))}). After that it gets updates like everything else.</p></div>
+    <div class="dlg-body">
+      <label class="bigsearch" style="margin:0 0 12px;height:46px"><svg class="i"><use href="#i-search"/></svg><input id="lq" type="search" value="${esc(a.name)}" aria-label="Search CurseForge"></label>
+      <ul class="list" id="lres"><li class="empty" style="padding:30px">Searching...</li></ul>
+    </div>
+    <div class="dlg-foot"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="dlgOk" disabled>Link</button></div>`);
+  const go = async () => {
+    $("#lres", d).innerHTML = `<li class="empty" style="padding:30px">Searching...</li>`;
+    try {
+      const r = await api(`/api/search?q=${encodeURIComponent($("#lq", d).value)}&forever=0&sort=2`);
+      results = r.results;
+      $("#lres", d).innerHTML = results.length ? results.map(m => `<li class="row" data-id="${m.id}">${logoHtml(m.name, m.logo)}
+        <div><div class="name"><span>${esc(m.name)}</span></div><div class="meta">by ${esc(m.authors.join(", "))}, ${n(m.downloads)} downloads${m.file ? "" : ", no Forever file yet"}</div></div><div></div><div></div></li>`).join("")
+        : `<li class="empty" style="padding:30px">No projects found. Try a shorter name.</li>`;
+    } catch (err) { $("#lres", d).innerHTML = `<li class="empty msg-err" style="padding:30px">${esc(err.message)}</li>`; }
+  };
+  $("#lq", d).addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  $("#lres", d).addEventListener("click", e => {
+    const li = e.target.closest("[data-id]"); if (!li) return;
+    $$("#lres .row", d).forEach(x => x.classList.toggle("sel", x === li));
+    sel = +li.dataset.id; $("#dlgOk", d).disabled = false;
+  });
+  $("#lres", d).addEventListener("dblclick", e => { if (e.target.closest("[data-id]")) $("#dlgOk", d).click(); });
+  $("#dlgOk", d).addEventListener("click", () => { d.close(); runJob("/api/link", { key: a.key, modId: sel }, []); });
+  go();
+}
+
+// Find addons
+let findTimer = null;
+$("#findInput").addEventListener("keydown", e => { if (e.key === "Enter") { clearTimeout(findTimer); search(false); } });
+$("#findInput").addEventListener("input", () => { clearTimeout(findTimer); findTimer = setTimeout(() => search(false), 450); });
+$("#sortSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  S.find.sort = +b.dataset.s; $$("#sortSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); search(false);
+});
+$("#foreverOnly").addEventListener("change", () => search(false));
+$("#moreBtn").addEventListener("click", () => search(true));
+
+let searchSeq = 0;
+async function search(more) {
+  const seq = ++searchSeq;
+  const q = $("#findInput").value.trim();
+  const index = more ? S.find.results.length : 0;
+  if (!more) { $("#findList").innerHTML = `<li class="empty">Searching CurseForge...</li>`; $("#findCount").textContent = ""; }
+  try {
+    const r = await api(`/api/search?q=${encodeURIComponent(q)}&sort=${S.find.sort}&forever=${$("#foreverOnly").checked ? 1 : 0}&index=${index}`);
+    if (seq !== searchSeq) return;
+    S.find.loaded = true;
+    S.find.results = more ? S.find.results.concat(r.results) : r.results;
+    S.find.total = r.total;
+    renderFind();
+  } catch (err) {
+    if (seq !== searchSeq) return;
+    $("#findList").innerHTML = err.auth
+      ? `<li class="empty"><h2>Search needs a working API key</h2><p>CurseForge rejected the key on this search. Test it or paste a new one in Settings.</p><button class="btn primary" data-go="keyfix">Fix in Settings</button></li>`
+      : `<li class="empty"><p class="msg-err">${esc(err.message)}</p></li>`;
+  }
+}
+function renderFind() {
+  const res = S.find.results, q = $("#findInput").value.trim();
+  $("#findCount").textContent = res.length ? (q ? `${n(S.find.total)} results for "${q}"` : `Popular for ${T().label}`) : "";
+  $("#moreBtn").hidden = res.length >= S.find.total || !res.length;
+  if (!res.length) {
+    $("#findList").innerHTML = `<li class="empty"><h2>No addons found</h2><p>${$("#foreverOnly").checked ? `Nothing made for ${esc(T().short)} matches that. Turn off the filter to see projects that haven't been updated for it yet.` : "Try a different word."}</p></li>`;
+    return;
+  }
+  $("#findList").innerHTML = res.map(m => {
+    let state;
+    const q = m.installed === "installed" ? "uncommon" : m.installed === "update" ? "epic" : !m.file ? "poor" : "common";
+    if (m.installed === "installed") state = `<span class="st ok">${icon("check")}Installed</span>`;
+    else if (m.installed === "update") state = `<button class="btn primary sm" data-install="${m.id}">Update</button>`;
+    else if (!m.file) state = `<span class="st" title="No file tagged for ${esc(T().label)} yet">Not on ${esc(T().short)} yet</span>`;
+    else if (m.distributable === false) state = `<button class="btn web sm" data-manualmod="${m.id}" title="The author only allows downloads from the CurseForge website. The app opens the page in a download window and installs the file as soon as it arrives.">${icon("ext")}Get on CurseForge</button>`;
+    else state = `<button class="btn primary sm" data-install="${m.id}">${icon("dl")}Install</button>`;
+    return `<li class="card result q-${q}">
+      <div class="card-top">${logoHtml(m.name, m.logo)}
+        <div style="min-width:0"><div class="name"><span>${esc(m.name)}</span></div><div class="meta">by ${esc(m.authors.slice(0, 2).join(", "))}</div></div>
+        <button class="icon-btn" data-url="${esc(m.website)}" aria-label="Open ${esc(m.name)} on CurseForge" title="Open on CurseForge">${icon("ext")}</button>
+      </div>
+      <p class="summary">${esc(m.summary)}</p>
+      <div class="card-foot">
+        <div class="stats"><span>${icon("dl")}${n(m.downloads)}</span><span>${icon("clock")}${esc(day(m.updated))}</span>${m.file && m.file.channel !== "Release" ? `<span class="tag">${esc(m.file.channel)}</span>` : ""}</div>
+        <div class="state">${state}</div>
+      </div>
+    </li>`;
+  }).join("");
+  jobUi();
+}
+$("#findList").addEventListener("click", e => {
+  const wm = e.target.closest("[data-manualmod]");
+  if (wm) return startManual({ modIds: [+wm.dataset.manualmod] });
+  const b = e.target.closest("[data-install]");
+  if (b) { b.textContent = "Installing"; runJob("/api/install", { modIds: [+b.dataset.install] }, []); }
+});
+function refreshFindStates() {
+  if (!S.find.loaded) return;
+  const have = new Map(S.addons.filter(a => a.modId).map(a => [a.modId, a]));
+  S.find.results.forEach(m => { const a = have.get(m.id); m.installed = a ? (a.canUpdate ? "update" : "installed") : null; });
+  renderFind();
+}
+
+// Links and folders
+function openUrl(u) { api("/api/open", { url: u }).catch(err => toast(err.message, "err")); }
+document.addEventListener("click", e => {
+  const u = e.target.closest("[data-url]"); if (u && u.dataset.url) { e.preventDefault(); openUrl(u.dataset.url); }
+  const f = e.target.closest("[data-open]"); if (f) api("/api/open", { folder: f.dataset.open }).catch(err => toast(err.message, "err"));
+});
+$("#keyBannerFix").addEventListener("click", gotoKeyFix);
+// Games
+const T = () => {   // wording for the selected game
+  const a = S.setup && S.setup.active;
+  return { label: a ? a.label : "your game", short: a ? a.short : "this game", wow: !!(a && a.flavors), game: a ? a.gameName : "" };
+};
+function glyph(p) { return ((p.short && p.short !== "WoW" ? p.short : p.label) || "?").trim()[0].toUpperCase(); }
+// The WoW badge takes the theme's accent color. The other games keep their own.
+const gameColor = c => !c || c.toUpperCase() === "#B067FF" ? "var(--epic)" : c;
+function emblem(p, extra = "") { return `<span class="emblem ${extra}" style="--gc:${esc(gameColor(p.color))}">${esc(glyph(p))}</span>`; }
+function pathTail(dir) {
+  const parts = (dir || "").split(/[\\/]+/).filter(Boolean), sep = (dir || "").includes("\\") ? "\\" : "/";
+  // "...\\_classic_beta_\\Interface\\AddOns" -> "_classic_beta_";  "...\\Elder Scrolls Online\\live\\AddOns" -> "live\\AddOns"
+  return parts.length >= 3 && /^interface$/i.test(parts.at(-2)) ? parts.at(-3) : parts.slice(-2).join(sep);
+}
+const GAME_COLORS = { wow: "#B067FF", eso: "#C9A86A", rift: "#4FC3D8", rom: "#E25B5B" };
+
+function openGameMenu() {
+  const m = $("#gameMenu"), s = S.setup, btn = $("#gamePick");
+  if (m.classList.contains("on")) return closeGameMenu();
+  const act = s.active && s.active.id;
+  m.innerHTML = (s.profiles || []).map(p => `<button role="menuitemradio" aria-checked="${p.id === act}" data-pid="${esc(p.id)}">${emblem(p)}
+      <span class="gm-text"><strong>${esc(p.label)}</strong><small>${esc(p.folderOk ? pathTail(p.addonsDir) : "Folder not found")}</small></span>
+      ${p.updates ? `<span class="count" title="${p.updates} update${p.updates === 1 ? "" : "s"}">${p.updates}</span>` : (p.id === act ? icon("check") : "")}</button>`).join("")
+    + ((s.profiles || []).length ? "<hr>" : "")
+    + `<button data-act="add">${icon("plus")}<span class="gm-text"><strong>Add a game or WoW version</strong></span></button>`
+    + (s.active ? `<button data-act="open">${icon("folder")}<span class="gm-text"><strong>Open this AddOns folder</strong></span></button>` : "");
+  const r = btn.getBoundingClientRect();
+  m.style.left = r.left + "px"; m.style.top = (r.bottom + 6) + "px"; m.style.minWidth = Math.max(300, r.width) + "px";
+  m.classList.add("on"); btn.setAttribute("aria-expanded", "true");
+  $("button", m)?.focus();
+}
+function closeGameMenu() { $("#gameMenu").classList.remove("on", "adding"); $("#gamePick").setAttribute("aria-expanded", "false"); }
+
+// "Add a game or WoW version" turns the menu into every game and WoW version the app supports.
+// The ones found on this PC show their folder and add in one click. The rest ask for their folder.
+let ADD_OPTS = [];
+async function openAddMenu() {
+  const m = $("#gameMenu");
+  m.classList.add("adding");
+  const head = `<div class="gm-head"><button class="icon-btn" data-act="back" aria-label="Back">${icon("back")}</button><b>Add a game</b></div>`;
+  m.innerHTML = head + `<div class="gm-loading"><span class="spin"></span>Looking for games on this PC...</div>`;
+  let opts;
+  try { opts = (await api("/api/add-options")).options; }
+  catch (err) { m.innerHTML = head + `<div class="gm-loading">${esc(err.message)}</div>`; return; }
+  if (!m.classList.contains("on") || !m.classList.contains("adding")) return;
+  ADD_OPTS = opts;
+  const row = (o, i) => {
+    const short = o.short || o.label;
+    const sub = o.added ? "Already added"
+      : o.addonsDir ? `<span class="gm-found">Found</span> · ${esc(pathTail(o.addonsDir))}` : "Not found on this PC · choose its folder";
+    const end = o.added ? icon("check") : o.addonsDir ? `<span class="gm-add">Add</span>` : icon("folder");
+    return `<button role="menuitem" data-opt="${i}" class="${o.added ? "opt-added" : ""}" title="${esc(o.addonsDir || "")}">${emblem({ short, label: short, color: GAME_COLORS[o.game] })}
+      <span class="gm-text"><strong>${esc(o.label)}</strong><small>${sub}</small></span>${end}</button>`;
+  };
+  const wow = opts.map((o, i) => [o, i]).filter(([o]) => o.game === "wow");
+  const other = opts.map((o, i) => [o, i]).filter(([o]) => o.game !== "wow");
+  m.innerHTML = head
+    + `<div class="gm-group">World of Warcraft</div>` + wow.map(([o, i]) => row(o, i)).join("")
+    + `<div class="gm-group">Other games</div>` + other.map(([o, i]) => row(o, i)).join("");
+  $("button[data-opt]:not(.opt-added)", m)?.focus();
+}
+async function addOption(o) {
+  if (!o) return;
+  if (o.added) return o.pid && o.pid !== S.setup.active?.id ? selectGame(o.pid) : undefined;
+  let dir = o.addonsDir;
+  if (!dir) {
+    try { dir = (await api("/api/pick-folder", { title: `Choose the ${o.label} Interface\\AddOns folder` })).path; }
+    catch (err) { return toast(err.message, "err"); }
+    if (!dir) return;
+  }
+  try {
+    const st = await api("/api/profiles/add", { items: [{ ...o, addonsDir: dir }] });
+    applyState(st); show("mine");
+    if (st.job && st.job.running) { S.job = st.job; S.jobKeys = new Set(); jobUi(); poll(); }
+    toast(`Added ${st.setup.active.label}`);
+  } catch (err) { toast(err.message, "err"); }
+}
+$("#gamePick").addEventListener("click", e => { e.stopPropagation(); openGameMenu(); });
+$("#gameMenu").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.act === "add") { e.stopPropagation(); return openAddMenu(); }
+  if (b.dataset.act === "back") { e.stopPropagation(); closeGameMenu(); return openGameMenu(); }
+  if (b.dataset.opt != null) { closeGameMenu(); return addOption(ADD_OPTS[+b.dataset.opt]); }
+  closeGameMenu();
+  if (b.dataset.act === "open") return api("/api/open", { folder: "addons" }).catch(err => toast(err.message, "err"));
+  if (b.dataset.pid && b.dataset.pid !== S.setup.active?.id) selectGame(b.dataset.pid);
+});
+document.addEventListener("click", e => { if (!e.target.closest("#gameMenu") && !e.target.closest("#gamePick")) closeGameMenu(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeGameMenu(); });
+
+async function selectGame(pid) {
+  try {
+    const st = await api("/api/profiles/select", { id: pid });
+    S.q = ""; $("#mineFilter").value = ""; S.filter = "all";
+    $$("#mineSeg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.f === "all"));
+    S.find = { q: "", sort: S.find.sort, index: 0, total: 0, results: [], loaded: false };
+    $("#findList").innerHTML = ""; $("#findCount").textContent = "";
+    applyState(st);
+    if (st.job && st.job.running) { S.job = st.job; S.jobKeys = new Set(); jobUi(); poll(); }
+    if (S.view === "find") search(false);
+    if (S.view === "welcome") show("mine");
+  } catch (err) { toast(err.message, "err"); }
+}
+
+// one row per install found on this PC (used by "Add a game" and by first-time setup)
+function installRow(i, n, types, checked) {
+  const short = i.game === "wow" ? ((i.flavorName || "").replace(/^(world of warcraft|wow)[:\s-]*/i, "") || "WoW") : i.gameName;
+  let ver = "";
+  if (i.game === "wow") {
+    ver = types.length
+      ? `<select class="field" data-n="${n}" aria-label="WoW version for ${esc(i.addonsDir)}">${i.flavorId ? "" : `<option value="">Detect automatically</option>`}${types.map(t => `<option value="${t.id}" ${t.id === i.flavorId ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select>`
+      : `<span class="help">Version detected after connecting</span>`;
+  }
+  return `<label class="inst"><input type="checkbox" data-n="${n}" ${checked ? "checked" : ""}>${emblem({ short, label: short, color: GAME_COLORS[i.game] })}
+    <span class="inst-text"><strong>${esc(i.label)}</strong><small>${esc(i.addonsDir)}</small></span>${ver}</label>`;
+}
+// A small controller for a list of installs with checkboxes and version pickers.
+function installPicker(container, onChange) {
+  const st = { items: [], types: [], sel: new Set() };
+  const draw = () => {
+    container.innerHTML = st.items.length ? st.items.map((i, n) => installRow(i, n, st.types, st.sel.has(n))).join("")
+      : `<span class="help">No games were found automatically. Choose a folder below.</span>`;
+    onChange && onChange(st);
+  };
+  container.addEventListener("change", e => {
+    const n = +e.target.dataset.n;
+    if (e.target.type === "checkbox") e.target.checked ? st.sel.add(n) : st.sel.delete(n);
+    if (e.target.tagName === "SELECT") {
+      const t = st.types.find(t => t.id === +e.target.value);
+      Object.assign(st.items[n], { flavorId: t ? t.id : null, flavorName: t ? t.name : "", label: t ? t.name : st.items[n].label });
+      st.sel.add(n); draw(); return;
+    }
+    onChange && onChange(st);
+  });
+  return {
+    st,
+    async load() {
+      try {
+        const r = await api("/api/detect-installs");
+        st.types = r.wowTypes || []; st.items = r.installs.filter(i => !i.added);
+      } catch (err) { st.items = []; }
+      draw();
+    },
+    async browse(errEl) {
+      try {
+        const r = await api("/api/pick-folder", {});
+        if (!r.path) return;
+        const g = await api("/api/guess-folder", { path: r.path });
+        const gameName = { wow: "World of Warcraft", eso: "The Elder Scrolls Online", rift: "Rift", rom: "Runes of Magic" }[g.game];
+        st.items.push({ ...g, gameName, label: g.game === "wow" ? (g.flavorName || "World of Warcraft") : gameName });
+        st.sel.add(st.items.length - 1); draw();
+      } catch (err) { if (errEl) errEl.textContent = err.message; }
+    },
+    chosen() { return [...st.sel].map(n => st.items[n]); },
+  };
+}
+
+function renderFindHead() {
+  const t = T(), a = S.setup && S.setup.active;
+  $("#findTitle").textContent = a ? `Find ${a.flavors ? a.label : a.short} Addons` : "Find Addons";
+  $("#findSub").textContent = a ? `Search ${t.game} addons on CurseForge. Install puts them straight into your ${t.label} AddOns folder.`
+                                : "Add a game first, then search its addons here.";
+  $("#foreverToggle").hidden = !t.wow;
+  $("#foreverLbl").textContent = `Only show addons made for ${t.short}`;
+}
+
+// Settings
+function renderSettings() {
+  const s = S.setup;
+  const st = keyState(), k = s.key || {}, tail = k.tail ? ` Key ends in ${k.tail}.` : "";
+  const stat = $("#keyStat");
+  if (st === "none") { stat.className = "keystat unknown"; stat.innerHTML = `${icon("alert")}<span>No key saved yet.</span>`; }
+  else if (st === "ok") { stat.className = "keystat ok"; stat.innerHTML = `${icon("check")}<span>Working. CurseForge accepted it ${esc(ago(k.at))}.<small>${esc(tail.trim())}</small></span>`; }
+  else if (st === "rejected") { stat.className = "keystat bad"; stat.innerHTML = `${icon("alert")}<span>CurseForge is rejecting this key (${esc(ago(k.at))}).<small>${esc(k.message || "")}${k.message && !/[.!?]$/.test(k.message) ? "." : ""}${esc(tail)}</small></span>`; }
+  else { stat.className = "keystat unknown"; stat.innerHTML = `${icon("clock")}<span>Saved, not checked since the app started.<small>${esc(tail.trim())} Use Test key to check it now.</small></span>`; }
+  $("#keyActions").hidden = st === "none";
+  if (st === "none" || st === "rejected") $("#keyEdit").hidden = false;
+  const a = s.active;
+  $("#setGameHead").innerHTML = a ? `${esc(a.label)}<small>settings for this game only</small>` : "This game";
+  $("#setFolderTitle").textContent = a ? "AddOns folder" : "AddOns folder";
+  $("#setFolderDesc").textContent = !a ? "Add a game from the game menu first."
+    : a.game === "eso" ? "Documents\\Elder Scrolls Online\\live\\AddOns, unless you moved it."
+    : a.game === "wow" ? `The Interface\\AddOns folder inside this WoW version's game folder.` : "The Interface\\AddOns folder of this game.";
+  $("#setFlavorRow").hidden = !(a && a.flavors);
+  $("#setFlavorDesc").textContent = a ? `Which CurseForge files count as ${a.short} files. Detected automatically.` : "";
+  $("#setRemove").hidden = !a;
+  $("span", $("#setRemove")).textContent = a ? `Remove ${a.label}` : "Remove";
+  $("#setPath").textContent = (a && a.addonsDir) || "No folder chosen";
+  const sel = $("#flavorSel");
+  if (!sel.options.length || sel.dataset.loaded !== "1") sel.innerHTML = s.flavorId ? `<option value="${s.flavorId}">${esc(s.flavorName)}</option>` : `<option value="">Not detected yet</option>`;
+  sel.value = s.flavorId || "";
+  $$("#chanSeg button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.c === s.channel));
+  $("#keepBk").checked = s.keepBackups; $("#maxBk").value = s.maxBackups;
+  if (s.theme) applyTheme(s.theme);
+  renderThemes();
+  // background checks
+  $("#checkSel").value = String(s.checkHours ?? 6);
+  const inHow = t => { const m = Math.round((t * 1000 - Date.now()) / 60000); return m <= 1 ? "in a minute" : m < 60 ? `in ${m} minutes` : `in about ${Math.round(m / 60)} hour${Math.round(m / 60) === 1 ? "" : "s"}`; };
+  $("#checkNote").textContent = [
+    s.checkHours ? (s.lastAutoCheck ? `Last checked all games ${ago(s.lastAutoCheck)}.` : "") : "Background checks are off.",
+    s.checkHours && s.nextAutoCheck ? `Next check ${inHow(s.nextAutoCheck)}.` : "",
+    s.checkHours && !s.canNotify ? "Notifications need the app's built-in window; this Edge window just refreshes the list." : "",
+  ].filter(Boolean).join(" ");
+  // startup and tray
+  $("#trayOn").checked = !!s.tray; $("#trayOn").disabled = !s.canTray;
+  $("#trayNote").hidden = !!s.canTray;
+  $("#trayNote").textContent = "Needs the app's built-in window. This copy is running in an Edge window, which can't sit in the tray.";
+  $("#autoOn").checked = !!s.autostart; $("#autoOn").disabled = !s.canAutostart;
+  $("#autoMin").checked = !!s.startMinimized; $("#autoMin").disabled = !s.canAutostart || !s.autostart || !s.canTray;
+  const inTray = s.tray && s.canTray;
+  $("#autoMinLbl").textContent = inTray ? "Start minimized to the tray" : "Start minimized to the taskbar";
+  $("#autoNote").textContent = !s.canAutostart ? "Only available on Windows."
+    : !s.autostart ? ""
+    : s.startMinimized ? (inTray ? "At sign-in it starts quietly in the tray, with no window." : "At sign-in it starts minimized on the taskbar.")
+    : "At sign-in the window opens.";
+}
+const THEMES = [
+  { id: "arcane",  name: "Arcane",  note: "Violet and plum. The original." },
+  { id: "forever", name: "Forever", note: "The WoW Forever login screen" },
+  { id: "dark",    name: "Dark",    note: "Plain black and grey, no glow" },
+  { id: "fel",     name: "Fel",     note: "Green fire on moss black" },
+  { id: "frost",   name: "Frost",   note: "Ice blue on cold slate" },
+  { id: "crimson", name: "Crimson", note: "Blood red and rose" },
+];
+function applyTheme(id) {
+  const root = document.documentElement;
+  if (root.dataset.theme === id) return;
+  root.dataset.theme = id;
+  const m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.content = getComputedStyle(root).getPropertyValue("--void-2").trim() || m.content;
+}
+function renderThemes() {
+  const cur = S.setup.theme || "arcane", box = $("#themePick");
+  if (!box.children.length) {
+    box.innerHTML = THEMES.map(t => `<button class="theme-card" data-pick="${t.id}" aria-pressed="false">
+      <span class="tc-prev" data-theme="${t.id}" aria-hidden="true">
+        <span class="tc-side"><i></i><i class="on"></i><i></i><i></i></span>
+        <span class="tc-main"><i class="tc-h"></i><span class="tc-row"><b></b><s></s></span><span class="tc-row"><b class="ok"></b><s></s></span><i class="tc-btn"></i></span>
+      </span>
+      <span class="tc-name">${esc(t.name)}${icon("check")}</span><small>${esc(t.note)}</small></button>`).join("");
+  }
+  $$(".theme-card", box).forEach(b => b.setAttribute("aria-pressed", b.dataset.pick === cur));
+}
+$("#themePick").addEventListener("click", e => {
+  const b = e.target.closest(".theme-card");
+  if (!b || b.getAttribute("aria-pressed") === "true") return;
+  applyTheme(b.dataset.pick);                       // switch right away, the save catches up
+  $$(".theme-card", $("#themePick")).forEach(x => x.setAttribute("aria-pressed", x === b));
+  saveSettings({ theme: b.dataset.pick });
+});
+async function saveSettings(patch, errEl) {
+  try {
+    if (errEl) errEl.textContent = "";
+    const r = await api("/api/settings", patch);
+    S.setup = r.setup; renderSide(); renderSettings();
+    return true;
+  } catch (err) { if (errEl) errEl.textContent = err.message; else toast(err.message, "err"); return false; }
+}
+$("#keyChange").addEventListener("click", () => { $("#keyEdit").hidden = false; $("#keyInput").focus(); });
+$("#keyTest").addEventListener("click", async () => {
+  const b = $("#keyTest"), out = $("#keyTestOut");
+  b.disabled = true; out.hidden = false; out.innerHTML = `<span>Testing...</span><span></span>`;
+  try {
+    const r = await api("/api/test-key", {});
+    S.setup = r.setup;
+    const line = (label, v) => `<b>${label}</b><span class="${v.ok ? "good" : "no"}">${v.ok ? "Working" : esc(`Rejected (HTTP ${v.status || "?"})`)}</span>`;
+    out.innerHTML = line("Addon lookups", r.results.lookup) + line("Search", r.results.search);
+    renderSide(); renderSettings();
+  } catch (err) { out.innerHTML = `<b>Test</b><span class="no">${esc(err.message)}</span>`; }
+  b.disabled = false;
+});
+$("#keySave").addEventListener("click", async () => {
+  const v = $("#keyInput").value.trim(); if (!v) return;
+  $("#keySave").disabled = true;
+  if (await saveSettings({ apiKey: v }, $("#keyErr"))) { $("#keyInput").value = ""; $("#keyEdit").hidden = true; $("#keyTestOut").hidden = true; toast("API key saved and working"); runJob("/api/scan", {}, []); }
+  else { $("#keyInput").focus(); $("#keyInput").select(); }
+  $("#keySave").disabled = false;
+});
+$("#keyInput").addEventListener("keydown", e => { if (e.key === "Enter") $("#keySave").click(); });
+$("#setPick").addEventListener("click", async () => {
+  const p = await pickFolder($("#folderErr")); if (p) { toast("AddOns folder changed"); runJob("/api/scan", {}, []); }
+});
+$("#flavorLoad").addEventListener("click", async () => {
+  $("#flavorErr").textContent = "";
+  try {
+    const r = await api("/api/version-types");
+    const sel = $("#flavorSel"); sel.dataset.loaded = "1";
+    sel.innerHTML = r.types.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join("");
+    sel.value = S.setup.flavorId || "";
+  } catch (err) { $("#flavorErr").textContent = err.message; }
+});
+$("#flavorSel").addEventListener("change", async e => {
+  const o = e.target.selectedOptions[0];
+  if (o && o.value && await saveSettings({ flavorId: +o.value, flavorName: o.textContent })) runJob("/api/scan", {}, []);
+});
+$("#chanSeg").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (await saveSettings({ channel: +b.dataset.c })) { toast("Update channel saved"); runJob("/api/scan", {}, []); }
+});
+$("#setRemove").addEventListener("click", () => {
+  const a = S.setup.active; if (!a) return;
+  dialog(`<div class="dlg-head"><h2>Remove ${esc(a.label)} from the app?</h2>
+    <p>The app stops managing it. Your addons stay in ${esc(a.addonsDir)}, untouched, and you can add it back any time.</p></div>
+    <div class="dlg-foot"><button class="btn ghost" data-close>Cancel</button><button class="btn danger" id="dlgOk">Remove</button></div>`,
+    d => $("#dlgOk", d).addEventListener("click", async () => {
+      d.close();
+      try {
+        const st = await api("/api/profiles/remove", { id: a.id });
+        applyState(st); toast(`Removed ${a.label} from the app`);
+        if (!st.setup.profiles.length) { show("welcome"); renderWelcome(); }
+        else if (st.job && st.job.running) { S.job = st.job; S.jobKeys = new Set(); jobUi(); poll(); }
+      } catch (err) { toast(err.message, "err"); }
+    }));
+});
+$("#keepBk").addEventListener("change", e => saveSettings({ keepBackups: e.target.checked }));
+$("#trayOn").addEventListener("change", e => saveSettings({ tray: e.target.checked }));
+$("#checkSel").addEventListener("change", e => saveSettings({ checkHours: +e.target.value }));
+$("#checkAll").addEventListener("click", async () => {
+  try { await api("/api/check-all", {}); toast("Checking all your games for updates..."); } catch (err) { toast(err.message, "err"); }
+});
+$("#autoOn").addEventListener("change", e => saveSettings({ autostart: e.target.checked }, $("#autoErr")).then(ok => ok || renderSettings()));
+$("#autoMin").addEventListener("change", e => saveSettings({ startMinimized: e.target.checked }));
+$("#maxBk").addEventListener("change", e => saveSettings({ maxBackups: Math.max(1, +e.target.value || 15) }));
+
+async function pickFolder(errEl) {
+  if (errEl) errEl.textContent = "";
+  try {
+    const r = await api("/api/pick-folder", {});
+    if (!r.path) return null;
+    const s = await api("/api/set-folder", { path: r.path });
+    S.setup = s.setup; renderSide(); renderSettings();
+    return r.path;
+  } catch (err) { if (errEl) errEl.textContent = err.message; return null; }
+}
+
+// First time setup
+async function renderWelcome() {
+  const s = S.setup;
+  const keyGood = s.hasKey && keyState() !== "rejected";
+  $("#stepKey").className = "step " + (keyGood ? "done" : "active");
+  $("#wKeyOk").hidden = !keyGood;
+  $("#stepKey .body .line").style.display = keyGood ? "none" : "flex";
+  if (s.hasKey && !keyGood) $("#wKeyErr").textContent = "CurseForge stopped accepting the saved key. Paste the key from console.curseforge.com again.";
+  const haveGame = (s.profiles || []).some(p => p.folderOk);
+  const wantGame = welcomePick && welcomePick.st.sel.size;
+  $("#stepFolder").className = "step " + (haveGame || wantGame ? "done" : (keyGood ? "active" : ""));
+  $("#wDone").disabled = !(keyGood && (haveGame || wantGame));
+  // (re)load the list once, and again after connecting so WoW versions can be named
+  const want = s.hasKey ? "key" : "nokey";
+  if (welcomeLoaded !== want) {
+    welcomeLoaded = want;
+    if (!welcomePick) welcomePick = installPicker($("#wPick"), () => renderWelcome());
+    await welcomePick.load();
+  }
+}
+let welcomePick = null, welcomeLoaded = "";
+$("#wBrowse").addEventListener("click", () => {
+  if (!welcomePick) welcomePick = installPicker($("#wPick"), () => renderWelcome());
+  welcomePick.browse($("#wFolderErr"));
+});
+$("#wKeySave").addEventListener("click", async () => {
+  const v = $("#wKey").value.trim(); if (!v) { $("#wKeyErr").textContent = "Paste your key first."; return; }
+  $("#wKeySave").disabled = true; $("#wKeySave").textContent = "Checking";
+  if (await saveSettings({ apiKey: v }, $("#wKeyErr"))) { $("#wKey").value = ""; renderWelcome(); }
+  else { $("#wKey").focus(); $("#wKey").select(); }   // next paste replaces the rejected text instead of adding to it
+  $("#wKeySave").disabled = false; $("#wKeySave").textContent = "Connect";
+});
+$("#wKey").addEventListener("keydown", e => { if (e.key === "Enter") $("#wKeySave").click(); });
+// The key box shows only dots, so leftover text is invisible. Clicking into it selects
+// everything, which makes a paste replace the old contents rather than add to them.
+$$(".secret").forEach(el => {
+  el.addEventListener("focus", () => setTimeout(() => el.select(), 0));
+  el.addEventListener("input", () => { const n = el.value.length; el.title = n ? `${n} characters` : ""; });
+});
+$("#wDone").addEventListener("click", async () => {
+  const chosen = welcomePick ? welcomePick.chosen() : [];
+  if (!chosen.length) { show("mine"); return runJob("/api/scan", {}, []); }
+  try {
+    const st = await api("/api/profiles/add", { items: chosen });
+    applyState(st); show("mine");
+    if (st.job && st.job.running) { S.job = st.job; S.jobKeys = new Set(); jobUi(); poll(); }
+  } catch (err) { $("#wFolderErr").textContent = err.message; }
+});
+
+// Staying in sync
+// Every few seconds ask the server if anything changed (a website download installed, a scan
+// finished and so on). It's one tiny request, and the full list only gets fetched when something did.
+setInterval(async () => {
+  if (!S.setup || (S.job && S.job.running)) return;
+  try {
+    const r = await api("/api/rev");
+    if (r.job && !(S.job && S.job.running)) { S.job = await api("/api/job"); S.jobKeys = new Set(); jobUi(); poll(); return; }
+    if (r.manualActive && !manualTimer) pollManual();
+    if (r.rev !== S.rev) await loadState();
+  } catch (e) {}
+}, 2500);
+
+// Telling the app the window is still open
+setInterval(() => api("/api/ping", {}).catch(() => {}), 30000);
+api("/api/ping", {}).catch(() => {});
+addEventListener("pagehide", () => navigator.sendBeacon(`/api/bye?t=${encodeURIComponent(TOKEN)}`));
+setInterval(() => { if (S.view === "mine" && S.lastScan && !(S.job && S.job.running)) renderMine(); }, 60000);
+
+// Start up
+(async function boot() {
+  try {
+    await loadState();
+    if ((S.manual.items || []).some(m => m.status === "waiting" || m.status === "installing")) pollManual();
+    if (!setupDone()) { show("welcome"); renderWelcome(); return; }
+    show("mine");
+    const j = await api("/api/job");
+    if (j.running) { S.job = j; jobUi(); poll(); }
+    else if (!S.lastScan) runJob("/api/scan", {}, []);
+  } catch (err) { toast(err.message, "err"); }
+})();
+</script>
+</body>
+</html>

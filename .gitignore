@@ -1,0 +1,11 @@
+# Only the app's own files go on GitHub, the same list Build-Release.ps1 copies into Source.
+# Everything else in this folder (release builds, scratch files, notes) is left out on purpose,
+# so nothing personal can sneak into the repository by accident.
+/*
+!/src/
+!/ui/
+!/Build-Release.ps1
+!/README.md
+!/LICENSE
+!/build.sh
+!/.gitignore

@@ -1,5 +1,7 @@
 # Blessed Hearth - A Not So Cursed Client
 
+[![Support on PayPal](https://img.shields.io/badge/Support-PayPal-0070ba?logo=paypal&logoColor=white)](https://paypal.me/shardstackdev)
+
 Version 2.1.0, the C# version
 
 An addon manager for the MMOs on CurseForge (every World of Warcraft version, The Elder Scrolls Online, Rift and Runes of Magic). It talks to CurseForge directly, so you don't need the CurseForge app.
@@ -9,6 +11,10 @@ An addon manager for the MMOs on CurseForge (every World of Warcraft version, Th
 - Searches CurseForge and installs addons, and offers to grab any libraries they need
 - Backs up an addon before replacing or removing it
 - Never refuses an addon because it "looks modified" or "incompatible"
+
+## Support
+
+Blessed Hearth is free and always will be. If it saves you some hassle and you'd like to chip in, you can [buy me a coffee on PayPal](https://paypal.me/shardstackdev). Thank you!
 
 ## Coming from an earlier version
 

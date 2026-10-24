@@ -59,14 +59,14 @@ $WebViewPackage = @{ Id = 'Microsoft.Web.WebView2'; Version = '1.0.3856.49' }
 
 # What goes into a release, as patterns under this folder. Anything that doesn't match stays behind.
 $ReleasePatterns = @(
-    'Build-Release.ps1', 'README.md', 'LICENSE', '.gitignore', 'build.sh',
+    'Build-Release.ps1', 'README.md', 'LICENSE', '.gitignore', 'build.sh', '.github\FUNDING.yml',
     'src\*.cs', 'src\Core\*.cs', 'src\App\*.cs', 'src\Window\*.cs',
     'ui\index.html', 'ui\icons\*.svg', 'ui\icons\*.ico', 'ui\fonts\*.woff2', 'ui\fonts\OFL.txt'
 )
 
 # File types that are plain text, so they can be read and searched
 $TextTypes = @('.cs', '.sh', '.md', '.txt', '.html', '.htm', '.css', '.js', '.json', '.bat', '.cmd',
-               '.ps1', '.svg', '.xml', '.ini', '.cfg', '.toml', '.log')
+               '.ps1', '.svg', '.xml', '.ini', '.cfg', '.toml', '.log', '.yml', '.yaml')
 
 function Say([string]$Text) { Write-Host $Text }
 function Step([string]$Text) { Write-Host ''; Write-Host "== $Text" -ForegroundColor Cyan }

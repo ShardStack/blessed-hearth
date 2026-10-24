@@ -577,7 +577,7 @@ namespace BlessedHearth
                 }
                 catch (ApiError e) { outD[t.Item1] = J.D("ok", false, "error", e.Message, "status", e.Status); }
             }
-            Log.Write("key test (ends ..." + AppState.Tail(key) + "): " + string.Join(", ", outD.Select(kv =>
+            Log.Write("key test (" + (BuiltInKey.Present ? "built-in key" : "ends ..." + AppState.Tail(key)) + "): " + string.Join(", ", outD.Select(kv =>
                 kv.Key + "=" + (J.Obj(kv.Value).Bool("ok") ? "ok" : (J.Obj(kv.Value).Get("status")?.ToString() ?? "None")))));
             return JsonOut(J.D("results", outD, "setup", App.Setup()));
         }
@@ -585,7 +585,8 @@ namespace BlessedHearth
         Response Settings(Dictionary<string, object> b)
         {
             var c = App.Config;
-            if (b.Get("apiKey") != null)
+            // A build with the app's own key has nothing to paste, so a pasted key is just ignored
+            if (b.Get("apiKey") != null && !BuiltInKey.Present)
             {
                 string raw = b.Str("apiKey");
                 string fresh = CurseForgeApi.CleanKey(raw);
@@ -650,12 +651,12 @@ namespace BlessedHearth
 
         Response Open(Dictionary<string, object> b)
         {
-            // Links only go to CurseForge, and folders only to the AddOns folder, its backups,
-            // or one addon's folder inside it
+            // Links only go to CurseForge (or the app's own download page on GitHub), and folders
+            // only to the AddOns folder, its backups, or one addon's folder inside it
             string url = b.Str("url");
             if (url != "")
             {
-                if (url.StartsWith("https://") && CurseForgeApi.IsCurseForge(url))
+                if ((url.StartsWith("https://") && CurseForgeApi.IsCurseForge(url)) || url == AppInfo.ReleasesUrl)
                 {
                     EdgeWindow.OpenInBrowser(url);
                     return JsonOut(J.D("ok", true));

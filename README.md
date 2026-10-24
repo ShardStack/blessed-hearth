@@ -1,6 +1,6 @@
 # Blessed Hearth - A Not So Cursed Client
 
-Version 2.0.1, the C# version
+Version 2.1.0, the C# version
 
 An addon manager for the MMOs on CurseForge (every World of Warcraft version, The Elder Scrolls Online, Rift and Runes of Magic). It talks to CurseForge directly, so you don't need the CurseForge app.
 
@@ -22,10 +22,11 @@ Run `Blessed Hearth.exe`. It's the whole app in one file, about 1.5 MB, and ther
 
 If a PC is missing WebView2 (Microsoft says only a few Windows 10 PCs are), the app opens its interface in a Microsoft Edge window instead and everything still works. WebView2 itself is a free download from Microsoft: https://developer.microsoft.com/microsoft-edge/webview2/
 
-The first screen walks you through two steps:
+The first screen has one step, **pick your games:** the app lists every game and WoW version it finds on this PC. Tick the ones you want, or choose a folder yourself. That's it.
 
-- **Connect to CurseForge:** sign in at https://console.curseforge.com/, open **API keys**, copy your key and paste it in. It gets checked right away.
-- **Pick your games:** the app lists every game and WoW version it finds on this PC. Tick the ones you want, or choose a folder yourself.
+There's no API key to get anymore. CurseForge approved Blessed Hearth and gave it its own key, which comes built into the exe. (Version 2.0 asked everyone to get a key of their own. If you saved one back then, it just sits unused in your settings.)
+
+Built it yourself from the source code? Then the exe has no key in it, and the first screen asks for one, the same way 2.0 did: sign in at https://console.curseforge.com/, open **API keys**, copy your key and paste it in.
 
 ## Games and WoW versions
 
@@ -82,9 +83,10 @@ The ... menu on each addon also has Open on CurseForge, Show in Explorer, Unlink
 
 ## Privacy and security
 
-- **Your API key** is stored in `%APPDATA%\BlessedHearth\config.json`, encrypted with Windows' own per-user encryption (the same thing browsers use for saved passwords). Only your Windows account on your PC can read it. It's only ever sent to CurseForge's servers. If CurseForge ever redirects a request somewhere else, the key gets left off.
+- **The app's CurseForge key** is built into the exe, scrambled so it isn't sitting in there as readable text. It's never in the source code or on GitHub. It's only ever sent to CurseForge's servers, and if CurseForge ever redirects a request somewhere else, the key gets left off.
+- **Your own API key** (only on builds without the app's key) is stored in `%APPDATA%\BlessedHearth\config.json`, encrypted with Windows' own per-user encryption (the same thing browsers use for saved passwords). Only your Windows account on your PC can read it. It's only ever sent to CurseForge's servers. If CurseForge ever redirects a request somewhere else, the key gets left off.
 - **The app's little server** only listens on 127.0.0.1, so nothing else on your network can reach it. Every request needs a random password that's made fresh each time the app starts, and requests that come in through some other domain name get turned away.
-- **The interface** runs under a strict security policy: only the app's own script runs, and text from CurseForge (names, descriptions, changelogs) is always shown as plain text, never as live code. Links only open CurseForge pages, in your normal browser.
+- **The interface** runs under a strict security policy: only the app's own script runs, and text from CurseForge (names, descriptions, changelogs) is always shown as plain text, never as live code. Links only open CurseForge pages (and the app's own download page on GitHub), in your normal browser.
 - **Downloads** have to be https, have to match CurseForge's size and checksum, and zips that try to write outside their folder or unpack to something enormous get refused.
 - **Your game settings,** SavedVariables and keybinds live in the `WTF` folder, which the app never touches.
 - Everything the app remembers is in `%APPDATA%\BlessedHearth\`: the config, one state file per AddOns folder, and a small log (it never has your key in it). The interface files, the window's browser data and the CurseForge pane's cookies are in `%LOCALAPPDATA%\BlessedHearth\`. Deleting those two folders removes every trace of the app, and it doesn't touch your addons.
@@ -98,6 +100,10 @@ Run it while the game is closed, or `/reload` after updating.
 - `Blessed Hearth.exe`, the whole app in one file, ready to share. No console window pops up when it starts.
 - `Source`, a clean copy of just the app's files (code and interface). It's copied from a fixed list, then scanned for API keys, email addresses and your user folder, and the build stops if it finds any.
 
+The app's CurseForge key gets built into the exe while it's being made, and never goes into `Source` or anywhere else in the app's folder, so it can't end up on GitHub. The first time you build, the script asks you to paste the key (it doesn't show on screen) and saves it encrypted for your Windows account in `%LOCALAPPDATA%\BlessedHearth\build-tools\curseforge-app-key.dat`, so it only asks once. Under the hood it writes a tiny extra code file with the key mixed with random bytes into your temp folder, hands it to the compiler with the rest of the code, and deletes it right after. Then it double checks the key can't be found as plain text inside the finished exe.
+
+To be upfront about it: scrambling isn't the same as locking. Someone determined could still dig the key out of the exe. That's true of every app that ships with a key, and it's how CurseForge expects approved apps to work.
+
 Run it from the app's folder:
 
 ```
@@ -106,6 +112,6 @@ powershell -ExecutionPolicy Bypass -File .\Build-Release.ps1
 
 Under the hood the build is one run of Microsoft's C# compiler. The first time, it downloads two free Microsoft packages from nuget.org (Microsoft's own package site) into `%LOCALAPPDATA%\BlessedHearth\build-tools`, about 20 MB, and reuses them after that: the C# compiler itself (Windows has an older one built in, but it only understands C# from 2012) and the WebView2 SDK, the two small DLLs that let a window host Edge's engine. Every file is checked for Microsoft's digital signature before it's used. The interface files and those DLLs get packed inside the exe.
 
-`-SkipExe` makes just the clean source copy.
+`-SkipExe` makes just the clean source copy. `-NewKey` forgets the saved key and asks for it again, for when CurseForge gives you a new one. `-NoKey` builds an exe without the app's key, which asks each person for their own like 2.0 did. If the key is in the `BLESSED_HEARTH_API_KEY` environment variable, the script uses that instead of asking.
 
 The fonts, Marcellus and Instrument Sans, are bundled under the SIL Open Font License (see `ui/fonts/OFL.txt`).

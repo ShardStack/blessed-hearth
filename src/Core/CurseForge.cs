@@ -43,6 +43,9 @@ namespace BlessedHearth
 
         public readonly string ApiKey, Base;
 
+        // true when this is the key that came built into the app, so messages don't ask you to paste a new one
+        bool Builtin => BuiltInKey.Present && ApiKey == BuiltInKey.Value;
+
         public CurseForgeApi(string apiKey, string baseUrl = null)
         {
             ApiKey = apiKey ?? "";
@@ -155,7 +158,7 @@ namespace BlessedHearth
         }
 
         // Turn a 401 or 403 into something useful by saying what CurseForge itself replied
-        static string AuthErrorText(int code, byte[] raw)
+        string AuthErrorText(int code, byte[] raw)
         {
             string detail = "";
             try
@@ -181,8 +184,10 @@ namespace BlessedHearth
                 }
             }
             catch (Exception) { }
-            string msg = "CurseForge rejected the API key (HTTP " + code + "). If you just created it, regenerate it once in "
-                         + "console.curseforge.com > API keys and paste the new one.";
+            string msg = Builtin
+                ? "CurseForge rejected the app's key (HTTP " + code + "). This usually clears up on its own, and if it doesn't, a newer version of the app will fix it."
+                : "CurseForge rejected the API key (HTTP " + code + "). If you just created it, regenerate it once in "
+                  + "console.curseforge.com > API keys and paste the new one.";
             return msg + (detail != "" ? " CurseForge said: " + detail : "");
         }
 
@@ -352,7 +357,8 @@ namespace BlessedHearth
                 int code = (int)resp.StatusCode;
                 if (code == 401 || code == 403)
                 {
-                    string msg = "CurseForge's file server refused the download (HTTP " + code + "). It needs a valid API key; check yours in Settings.";
+                    string msg = "CurseForge's file server refused the download (HTTP " + code + "). It needs a valid API key"
+                                 + (Builtin ? ", and it isn't accepting the app's key right now." : ", so check yours in Settings.");
                     Notify(false, msg);
                     throw new ApiError(msg, code);
                 }

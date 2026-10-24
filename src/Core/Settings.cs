@@ -15,9 +15,10 @@ namespace BlessedHearth
     public static class AppInfo
     {
         public const string Name = "Blessed Hearth";   // in full, "Blessed Hearth - A Not So Cursed Client"
-        public const string Version = "2.0.1";
+        public const string Version = "2.1.0";
+        public const string ReleasesUrl = "https://github.com/ShardStack/blessed-hearth/releases";
         public const long WowGameId = 1;
-        public static readonly string UserAgent = "BlessedHearth/" + Version + " (personal addon updater)";
+        public static readonly string UserAgent = "BlessedHearth/" + Version + " (addon manager; github.com/ShardStack/blessed-hearth)";
 
         public static bool IsWindows => Environment.OSVersion.Platform == PlatformID.Win32NT;
 
@@ -515,6 +516,7 @@ namespace BlessedHearth
         {
             get
             {
+                if (BuiltInKey.Present) return BuiltInKey.Value;   // the app's own key wins, when this build has one
                 if (key != "") return key;
                 string plain = Data.Str("api_key").Trim();
                 if (plain != "") return plain;

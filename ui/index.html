@@ -814,7 +814,7 @@ dialog.wide img { display: block; width: 100%; border-radius: 19px; }
     <div class="jobbar" id="jobbar"><div class="fill"></div></div>
     <div class="titleband" aria-hidden="true"><b id="tbGame"></b><span class="tb-sep">›</span><span id="tbView"></span></div>
     <div class="bannerwrap" id="keyBannerWrap" hidden>
-      <div class="keybanner" role="alert"><svg class="i"><use href="#i-alert"/></svg><span>CurseForge is rejecting your API key, so update checks, search and downloads are paused.</span><button class="btn sm" id="keyBannerFix">Fix in Settings</button></div>
+      <div class="keybanner" role="alert"><svg class="i"><use href="#i-alert"/></svg><span id="keyBannerText">CurseForge is rejecting your API key, so update checks, search and downloads are paused.</span><button class="btn sm" id="keyBannerFix">Fix in Settings</button></div>
     </div>
 
     <!-- My addons -->
@@ -918,13 +918,14 @@ dialog.wide img { display: block; width: 100%; border-radius: 19px; }
         <h2 class="set-h">All games</h2>
         <div class="set-list">
           <div class="set">
-            <div><h3>CurseForge API key</h3><p>Lets the app look up addons and downloads. It stays on this PC.</p></div>
+            <div><h3 id="keyTitle">CurseForge API key</h3><p id="keyDesc">Lets the app look up addons and downloads. It stays on this PC.</p></div>
             <div class="ctl">
               <div class="keystat" id="keyStat"></div>
               <div class="line" id="keyActions"><button class="btn sm" id="keyTest"><svg class="i"><use href="#i-refresh"/></svg>Test key</button><button class="linkish" id="keyChange">Change key</button></div>
               <div class="keytest" id="keyTestOut" hidden></div>
               <div class="line" id="keyEdit" hidden><input class="field wide secret" id="keyInput" type="text" placeholder="Paste your API key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other"><button class="btn primary" id="keySave">Save key</button></div>
-              <span class="help">Get a free key at <button class="linkish" data-url="https://console.curseforge.com/">console.curseforge.com</button> under API keys.</span>
+              <span class="help" id="keyHelp">Get a free key at <button class="linkish" data-url="https://console.curseforge.com/">console.curseforge.com</button> under API keys.</span>
+              <span class="help" id="keyHelpBuiltIn" hidden>A newer version of the app may fix this. <button class="linkish" id="keyReleases">Check for a newer version</button></span>
               <span class="msg-err" id="keyErr"></span>
             </div>
           </div>
@@ -992,7 +993,7 @@ dialog.wide img { display: block; width: 100%; border-radius: 19px; }
     <section class="view" id="view-welcome" aria-label="Get started">
       <div class="welcome">
         <h1>Let's set up your addons</h1>
-        <p class="sub">Two things and you're done. After this, checking and updating is one click.</p>
+        <p class="sub" id="wSub">Two things and you're done. After this, checking and updating is one click.</p>
         <ol class="steps">
           <li class="step" id="stepKey">
             <h2>Connect to CurseForge</h2>
@@ -1137,8 +1138,12 @@ function keyState() {
   if (!s || !s.hasKey) return "none";
   return (s.key && s.key.state) || "unknown";   // comes back as unknown, ok or rejected
 }
+const builtIn = () => !!(S.setup && S.setup.builtInKey);   // this build came with the app's own key
+// What to call the key that's having trouble, so the wording fits either kind of build
+const keyTrouble = () => builtIn() ? "CurseForge isn't accepting the app's key right now" : "CurseForge is rejecting your API key";
 function renderKeyEverywhere() {
   const st = keyState();
+  $("#keyBannerText").textContent = keyTrouble() + ", so update checks, search and downloads are paused.";
   $("#navKeyDot").hidden = st !== "rejected";
   $("#keyBannerWrap").hidden = !(st === "rejected" && (S.view === "mine" || S.view === "find"));
   document.body.classList.toggle("banner-on", !$("#keyBannerWrap").hidden);
@@ -1147,6 +1152,7 @@ function renderKeyEverywhere() {
 }
 function gotoKeyFix() {
   show("settings");
+  if (builtIn()) return;   // nothing to paste, Settings just shows what's going on
   $("#keyEdit").hidden = false;
   setTimeout(() => $("#keyInput").focus(), 50);
 }
@@ -1208,7 +1214,7 @@ function renderMine() {
   if (!S.setup?.active) { h.textContent = "Your addons"; sub.textContent = "Add a game from the game menu to get started."; }
   else if (!S.setup?.folderOk) { h.textContent = "Your addons"; sub.textContent = `The ${T().label} AddOns folder wasn't found. Choose it in Settings.`; }
   else if (!S.lastScan) { h.textContent = "Your addons"; sub.textContent = busy ? "Reading your AddOns folder..." : ""; }
-  else if (keyState() === "rejected") { h.textContent = "Can't check for updates right now"; sub.textContent = "CurseForge is rejecting your API key. Versions below are from your last successful check" + (S.lastScan && S.online ? ` (${ago(S.lastScan)}).` : "."); }
+  else if (keyState() === "rejected") { h.textContent = "Can't check for updates right now"; sub.textContent = keyTrouble() + ". Versions below are from your last successful check" + (S.lastScan && S.online ? ` (${ago(S.lastScan)}).` : "."); }
   else if (!S.online) { h.textContent = `${all.length} addon${all.length === 1 ? "" : "s"} installed`; sub.textContent = "Add your CurseForge API key in Settings to check for updates."; }
   else if (upd.length) {
     h.textContent = `${upd.length} addon${upd.length === 1 ? " has an update" : "s have updates"}`;
@@ -1799,7 +1805,9 @@ async function search(more) {
   } catch (err) {
     if (seq !== searchSeq) return;
     $("#findList").innerHTML = err.auth
-      ? `<li class="empty"><h2>Search needs a working API key</h2><p>CurseForge rejected the key on this search. Test it or paste a new one in Settings.</p><button class="btn primary" data-go="keyfix">Fix in Settings</button></li>`
+      ? (builtIn()
+        ? `<li class="empty"><h2>Search isn't working right now</h2><p>CurseForge didn't accept the app's key on this search. Settings has the details.</p><button class="btn primary" data-go="keyfix">Open Settings</button></li>`
+        : `<li class="empty"><h2>Search needs a working API key</h2><p>CurseForge rejected the key on this search. Test it or paste a new one in Settings.</p><button class="btn primary" data-go="keyfix">Fix in Settings</button></li>`)
       : `<li class="empty"><p class="msg-err">${esc(err.message)}</p></li>`;
   }
 }
@@ -2026,10 +2034,18 @@ function renderSettings() {
   const stat = $("#keyStat");
   if (st === "none") { stat.className = "keystat unknown"; stat.innerHTML = `${icon("alert")}<span>No key saved yet.</span>`; }
   else if (st === "ok") { stat.className = "keystat ok"; stat.innerHTML = `${icon("check")}<span>Working. CurseForge accepted it ${esc(ago(k.at))}.<small>${esc(tail.trim())}</small></span>`; }
-  else if (st === "rejected") { stat.className = "keystat bad"; stat.innerHTML = `${icon("alert")}<span>CurseForge is rejecting this key (${esc(ago(k.at))}).<small>${esc(k.message || "")}${k.message && !/[.!?]$/.test(k.message) ? "." : ""}${esc(tail)}</small></span>`; }
-  else { stat.className = "keystat unknown"; stat.innerHTML = `${icon("clock")}<span>Saved, not checked since the app started.<small>${esc(tail.trim())} Use Test key to check it now.</small></span>`; }
+  else if (st === "rejected") { stat.className = "keystat bad"; stat.innerHTML = `${icon("alert")}<span>${builtIn() ? "CurseForge isn't accepting the app's key" : "CurseForge is rejecting this key"} (${esc(ago(k.at))}).<small>${esc(k.message || "")}${k.message && !/[.!?]$/.test(k.message) ? "." : ""}${esc(tail)}</small></span>`; }
+  else { stat.className = "keystat unknown"; stat.innerHTML = `${icon("clock")}<span>${builtIn() ? "Built in" : "Saved"}, not checked since the app started.<small>${esc(tail.trim())} Use Test key to check it now.</small></span>`; }
   $("#keyActions").hidden = st === "none";
-  if (st === "none" || st === "rejected") $("#keyEdit").hidden = false;
+  // A build with the app's own key only shows how the connection is doing, nothing to paste or change
+  $("#keyTitle").textContent = builtIn() ? "CurseForge connection" : "CurseForge API key";
+  $("#keyDesc").textContent = builtIn() ? "This version of the app comes with its own CurseForge key, so there's nothing to set up."
+                                        : "Lets the app look up addons and downloads. It stays on this PC.";
+  $("#keyChange").hidden = builtIn();
+  $("#keyHelp").hidden = builtIn();
+  $("#keyHelpBuiltIn").hidden = !(builtIn() && st === "rejected");
+  if (builtIn()) $("#keyEdit").hidden = true;
+  else if (st === "none" || st === "rejected") $("#keyEdit").hidden = false;
   const a = s.active;
   $("#setGameHead").innerHTML = a ? `${esc(a.label)}<small>settings for this game only</small>` : "This game";
   $("#setFolderTitle").textContent = a ? "AddOns folder" : "AddOns folder";
@@ -2111,6 +2127,7 @@ async function saveSettings(patch, errEl) {
     return true;
   } catch (err) { if (errEl) errEl.textContent = err.message; else toast(err.message, "err"); return false; }
 }
+$("#keyReleases").addEventListener("click", () => openUrl(S.setup.releasesUrl));
 $("#keyChange").addEventListener("click", () => { $("#keyEdit").hidden = false; $("#keyInput").focus(); });
 $("#keyTest").addEventListener("click", async () => {
   const b = $("#keyTest"), out = $("#keyTestOut");
@@ -2191,7 +2208,11 @@ async function pickFolder(errEl) {
 // First time setup
 async function renderWelcome() {
   const s = S.setup;
-  const keyGood = s.hasKey && keyState() !== "rejected";
+  // With the app's own key built in there's no key step, just picking games
+  const keyGood = s.builtInKey || (s.hasKey && keyState() !== "rejected");
+  $("#stepKey").hidden = !!s.builtInKey;
+  $("#wSub").textContent = s.builtInKey ? "Pick your games and you're done. After this, checking and updating is one click."
+                                        : "Two things and you're done. After this, checking and updating is one click.";
   $("#stepKey").className = "step " + (keyGood ? "done" : "active");
   $("#wKeyOk").hidden = !keyGood;
   $("#stepKey .body .line").style.display = keyGood ? "none" : "flex";

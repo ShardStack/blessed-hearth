@@ -16,6 +16,15 @@ What it does:
   5. Builds "Blessed Hearth.exe" from the clean copy. It's one small file with the interface
      packed inside it. It needs nothing installed except Windows 10 or 11, which already have
      .NET Framework 4.8 and Edge's WebView2 engine.
+     The app's own CurseForge API key gets built into the exe (scrambled, not as plain text),
+     so people using it never have to get a key of their own. The key is never put in Source
+     or anywhere else in this folder, so it can't end up on GitHub.
+
+The app's CurseForge key:
+  The first time you build, this asks you to paste the key CurseForge gave you (it doesn't show
+  on screen). It's saved encrypted for your Windows account in
+  %LOCALAPPDATA%\BlessedHearth\build-tools\curseforge-app-key.dat and reused after that.
+  If the key is in the BLESSED_HEARTH_API_KEY environment variable, that's used instead.
 
 Building needs two free tools from Microsoft, fetched once from nuget.org (Microsoft's own package
 site) into %LOCALAPPDATA%\BlessedHearth\build-tools and reused after that, about 20 MB:
@@ -29,11 +38,15 @@ Run it from this folder:
     powershell -ExecutionPolicy Bypass -File .\Build-Release.ps1
 
 Options:
-    -SkipExe    only make the clean source copy, skip the exe (quick)
+    -SkipExe     only make the clean source copy, skip the exe (quick)
+    -NewKey      forget the saved CurseForge key and ask for it again (if CurseForge gives you a new one)
+    -NoKey       build without the app's key, so the exe asks each person for their own key like 2.0 did
 #>
 [CmdletBinding()]
 param(
-    [switch]$SkipExe
+    [switch]$SkipExe,
+    [switch]$NewKey,
+    [switch]$NoKey
 )
 
 $ErrorActionPreference = 'Stop'
@@ -58,7 +71,13 @@ $TextTypes = @('.cs', '.sh', '.md', '.txt', '.html', '.htm', '.css', '.js', '.js
 function Say([string]$Text) { Write-Host $Text }
 function Step([string]$Text) { Write-Host ''; Write-Host "== $Text" -ForegroundColor Cyan }
 $script:Out = $null
+$script:KeyFile = $null
+function Remove-KeyFile {
+    if ($script:KeyFile -and (Test-Path -LiteralPath $script:KeyFile)) { Remove-Item -LiteralPath $script:KeyFile -Force }
+    $script:KeyFile = $null
+}
 function Fail([string]$Text) {
+    Remove-KeyFile
     Write-Host ''
     Write-Host "STOPPED: $Text" -ForegroundColor Red
     # don't leave a half made release lying around, especially one that failed the privacy check
@@ -92,6 +111,112 @@ function Get-SavedApiKey {
         Say "(Couldn't read your saved key to look for it. The general key check still runs.)"
     }
     return $null
+}
+
+# The app's own CurseForge key (the one CurseForge issued to Blessed Hearth), kept encrypted for
+# your Windows account so only you, logged in as you, can read it back.
+$KeyShape = '^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$'
+$KeyEntropy = [Text.Encoding]::UTF8.GetBytes('Blessed Hearth build key')
+function Get-AppKeyPath {
+    if (-not $env:LOCALAPPDATA) { return $null }
+    return (Join-Path $env:LOCALAPPDATA 'BlessedHearth\build-tools\curseforge-app-key.dat')
+}
+function Read-SavedAppKey {
+    $path = Get-AppKeyPath
+    if (-not $path -or -not (Test-Path -LiteralPath $path)) { return $null }
+    try {
+        Add-Type -AssemblyName System.Security
+        $bytes = [Convert]::FromBase64String((Get-Content -LiteralPath $path -Raw).Trim())
+        $scope = [System.Security.Cryptography.DataProtectionScope]::CurrentUser
+        $plain = [System.Security.Cryptography.ProtectedData]::Unprotect($bytes, $KeyEntropy, $scope)
+        return [Text.Encoding]::UTF8.GetString($plain)
+    } catch {
+        Say "(The saved CurseForge key couldn't be read, so you'll be asked for it again.)"
+        return $null
+    }
+}
+function Save-AppKey([string]$Key) {
+    $path = Get-AppKeyPath
+    if (-not $path) { return }
+    Add-Type -AssemblyName System.Security
+    New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
+    $scope = [System.Security.Cryptography.DataProtectionScope]::CurrentUser
+    $locked = [System.Security.Cryptography.ProtectedData]::Protect([Text.Encoding]::UTF8.GetBytes($Key), $KeyEntropy, $scope)
+    Set-Content -LiteralPath $path -Value ([Convert]::ToBase64String($locked)) -Encoding Ascii
+}
+# Takes out spaces and line breaks that sneak in when copying
+function Clean-Key([string]$Key) { if (-not $Key) { return '' }; return ($Key -replace '\s', '') }
+function Get-AppKey {
+    $fromEnv = Clean-Key $env:BLESSED_HEARTH_API_KEY
+    if ($fromEnv) {
+        if ($fromEnv -notmatch $KeyShape) { Say "(Heads up: BLESSED_HEARTH_API_KEY isn't shaped like the usual CurseForge key, using it anyway.)" }
+        Say 'Using the key from BLESSED_HEARTH_API_KEY.'
+        return $fromEnv
+    }
+    if ($NewKey) {
+        $path = Get-AppKeyPath
+        if ($path -and (Test-Path -LiteralPath $path)) { Remove-Item -LiteralPath $path -Force }
+        Say 'Forgot the saved key.'
+    } else {
+        $saved = Clean-Key (Read-SavedAppKey)
+        if ($saved) {
+            Say 'Using your saved CurseForge key.'
+            return $saved
+        }
+    }
+    Say 'Paste the API key CurseForge gave Blessed Hearth (from console.curseforge.com).'
+    Say 'It will not show on screen while you paste. Press Enter when done.'
+    for ($try = 1; $try -le 3; $try++) {
+        $secure = Read-Host -Prompt 'Key' -AsSecureString
+        $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+        try { $typed = Clean-Key ([Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)) }
+        finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) }
+        $use = $typed -match $KeyShape
+        if (-not $use -and $typed.Length -ge 20) {
+            # CurseForge keys are usually 60 characters starting with $2a$10$, but just in case theirs is different
+            Say "That isn't shaped like the usual CurseForge key ($($typed.Length) characters, they're normally 60 and start with `$2a`$10`$)."
+            $use = (Read-Host -Prompt 'Use it anyway? Type yes or no') -match '^\s*y'
+        }
+        if ($use) {
+            Save-AppKey $typed
+            Say 'Got it. Saved encrypted for your Windows account, so you will not be asked again.'
+            return $typed
+        }
+        Say 'Try again.'
+    }
+    Fail 'No usable CurseForge key, so nothing was built. Run this again, or use -NoKey to build without one.'
+}
+
+# Writes the extra code file that hands the key to the app (see src\Core\BuiltInKey.cs). The key
+# is mixed with random bytes so it isn't sitting in the exe as plain text. The file goes in your
+# temp folder, never in Source, and gets deleted as soon as the exe is built.
+function New-KeyFile([string]$Key) {
+    $plain = [Text.Encoding]::ASCII.GetBytes($Key)
+    $pad = New-Object byte[] $plain.Length
+    $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+    $rng.GetBytes($pad)
+    $mixed = for ($i = 0; $i -lt $plain.Length; $i++) { '0x{0:X2}' -f ($plain[$i] -bxor $pad[$i]) }
+    $padText = ($pad | ForEach-Object { '0x{0:X2}' -f $_ }) -join ','
+    $code = @"
+namespace BlessedHearth
+{
+    public static partial class BuiltInKey
+    {
+        static partial void Load(ref string key)
+        {
+            byte[] a = { $($mixed -join ',') };
+            byte[] b = { $padText };
+            var c = new char[a.Length];
+            for (int i = 0; i < a.Length; i++) c[i] = (char)(a[i] ^ b[i]);
+            key = new string(c);
+        }
+    }
+}
+"@
+    $path = Join-Path ([IO.Path]::GetTempPath()) ("BlessedHearth-key-" + [Guid]::NewGuid().ToString('N') + '.cs')
+    $script:KeyFile = $path
+    Set-Content -LiteralPath $path -Value $code -Encoding Ascii
+    return $path
 }
 
 # Runs a program and shows what it prints. Build tools print their progress on the error stream,
@@ -190,7 +315,7 @@ Step 'Copying a clean copy of the app'
 $Source = Join-Path $Out 'Source'
 $count = 0
 foreach ($pattern in $ReleasePatterns) {
-    $items = @(Get-ChildItem -Path (Join-Path $Root $pattern) -File -ErrorAction SilentlyContinue)
+    $items = @(Get-ChildItem -Path (Join-Path $Root $pattern) -File -Force -ErrorAction SilentlyContinue)
     if ($items.Count -eq 0 -and -not $pattern.Contains('*')) { Fail "$pattern is missing, and a release needs it." }
     foreach ($f in $items) {
         $rel = $f.FullName.Substring($Root.Length).TrimStart('\')
@@ -207,6 +332,9 @@ Step 'Checking for anything personal'
 $mine = @{}
 $key = Get-SavedApiKey
 if ($key) { $mine['your API key'] = $key.Trim() }
+# the app's own key too, if it's been saved already (otherwise it's asked for just below)
+$savedAppKey = Clean-Key (Read-SavedAppKey)
+if ($savedAppKey) { $mine["the app's CurseForge key"] = $savedAppKey }
 if ($env:USERPROFILE) { $mine['your user folder'] = $env:USERPROFILE }
 if ($env:USERNAME) {
     $mine['your user folder name'] = "Users\$($env:USERNAME)"
@@ -226,6 +354,21 @@ if ($SkipExe) {
 }
 
 # 5. The exe
+$AppKey = $null
+if ($NoKey) {
+    Step 'Skipping the CurseForge key (-NoKey)'
+    Say 'This exe will ask each person for their own key in Settings.'
+} else {
+    Step 'Getting the CurseForge key ready'
+    $AppKey = Get-AppKey
+    # one more look now that the key's known for sure, in case a new one was just pasted
+    $leaks = Find-PersonalInfo -Folder $Source -Mine @{ "the app's CurseForge key" = $AppKey }
+    if ($leaks.Count -gt 0) {
+        $leaks | ForEach-Object { Say "  $_" }
+        Fail "The clean copy has the app's key in it, so nothing was built. Take it out of those files and run this again."
+    }
+}
+
 Step 'Getting the build tools ready'
 if (-not $env:LOCALAPPDATA) { Fail "Can't find %LOCALAPPDATA% for the build tools." }
 $Tools = Join-Path $env:LOCALAPPDATA 'BlessedHearth\build-tools'
@@ -275,7 +418,23 @@ $cscArgs += "/resource:$wvCore,lib/Microsoft.Web.WebView2.Core.dll"
 $cscArgs += "/resource:$wvForms,lib/Microsoft.Web.WebView2.WinForms.dll"
 foreach ($arch in $loaders.Keys) { $cscArgs += "/resource:$($loaders[$arch]),lib/$arch/WebView2Loader.dll" }
 $cscArgs += "/recurse:$(Join-Path $Source 'src\*.cs')"
-if ((Run $csc $cscArgs) -ne 0 -or -not (Test-Path -LiteralPath $exe)) { Fail "The build failed, see the messages above." }
+if ($AppKey) { $cscArgs += (New-KeyFile $AppKey) }
+try {
+    $built = (Run $csc $cscArgs) -eq 0
+} finally {
+    Remove-KeyFile   # the key file only ever exists for the few seconds the compiler needs it
+}
+if (-not $built -or -not (Test-Path -LiteralPath $exe)) { Fail "The build failed, see the messages above." }
+if ($AppKey) {
+    # Double check the key really is scrambled in there and not sitting as readable text
+    $raw = [IO.File]::ReadAllBytes($exe)
+    $asText = [Text.Encoding]::GetEncoding(28591).GetString($raw)
+    if ($asText.Contains($AppKey) -or $asText.Contains([Text.Encoding]::GetEncoding(28591).GetString([Text.Encoding]::Unicode.GetBytes($AppKey)))) {
+        Remove-Item -LiteralPath $exe -Force
+        Fail 'The key showed up as plain text inside the exe, so the exe was deleted. This should never happen, so something is off with the build.'
+    }
+    Say "The app's CurseForge key is built in (scrambled, not readable as text)."
+}
 $mb = [Math]::Round((Get-Item -LiteralPath $exe).Length / 1MB, 1)
 Say "Made $exe ($mb MB)"
 

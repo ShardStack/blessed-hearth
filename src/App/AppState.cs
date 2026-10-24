@@ -163,7 +163,7 @@ namespace BlessedHearth
             string prev = KeyState.Str("state");
             KeyState = J.D("state", ok ? "ok" : "rejected", "at", Clock.Now, "message", ok ? "" : (message ?? ""));
             if (prev != KeyState.Str("state"))
-                Log.Write("saved key (ends ..." + Tail(key) + ") is now " + KeyState.Str("state"));
+                Log.Write((BuiltInKey.Present ? "built-in key" : "saved key (ends ..." + Tail(key) + ")") + " is now " + KeyState.Str("state"));
         }
 
         public static string Tail(string key) => key.Length >= 4 ? key.Substring(key.Length - 4) : key;
@@ -377,13 +377,15 @@ namespace BlessedHearth
                 var ap = c.ActiveProfile();
                 string key = c.ApiKey;
                 var keyInfo = new Dictionary<string, object>(KeyState);
-                keyInfo["tail"] = key != "" ? Tail(key) : "";
+                keyInfo["tail"] = key != "" && !BuiltInKey.Present ? Tail(key) : "";   // no need to show any of the app's own key
                 long channel = J.ToLong(c["channel"]) ?? 0, maxBackups = J.ToLong(c["max_backups"]) ?? 0;
                 double last = Convert.ToDouble(c["last_auto_check"] ?? 0L);
                 return J.D(
                     "profiles", c.ProfileList.Select(ProfileJson).ToList(),
                     "active", ap != null ? ProfileJson(ap) : null,
                     "hasKey", key != "",
+                    "builtInKey", BuiltInKey.Present,   // the interface skips the paste-your-key steps when this is on
+                    "releasesUrl", AppInfo.ReleasesUrl,
                     "key", keyInfo,
                     "addonsDir", d,
                     "folderOk", d != "" && Directory.Exists(d),
